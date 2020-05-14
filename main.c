@@ -16,6 +16,30 @@ bool collisionTile(int tile)
            tile == 56 || tile == 57;   // tree
 }
 
+bool willBeCollision(int targetX, int targetY)
+{
+    int newTileX = (targetX / 8) % 64;
+    int newTileY = (targetY / 8) % 64;
+
+    bool xExactlyOnBoundary = targetX % 8 == 0;
+    bool yExactlyOnBoundary = targetY % 8 == 0;
+
+    for (int yOffset = 1; yOffset <= (yExactlyOnBoundary ? 1 : 2); yOffset++)
+    {
+        for (int xOffset = 0; xOffset <= (xExactlyOnBoundary ? 1 : 2); xOffset++)
+        {
+            int tileX = (newTileX + xOffset + 64) % 64;
+            int tileY = (newTileY + yOffset + 64) % 64;
+            if (collisionTile(worldTilemap[tileY * 64 + tileX]))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 int main(void)
 {
     Interrupt_Init();
@@ -180,24 +204,10 @@ int main(void)
             direction = Direction_Right;
         }
 
-        int newTileX = ((x + xSpeed) / 8) % 64;
-        int newTileY = ((y + ySpeed) / 8) % 64;
-
-        bool xExactlyOnBoundary = (x + xSpeed) % 8 == 0;
-        bool yExactlyOnBoundary = (y + ySpeed) % 8 == 0;
-
-        for (int yOffset = 1; yOffset <= (yExactlyOnBoundary ? 1 : 2); yOffset++)
+        if (willBeCollision(x + xSpeed, y + ySpeed))
         {
-            for (int xOffset = 0; xOffset <= (xExactlyOnBoundary ? 1 : 2); xOffset++)
-            {
-                int tileX = (newTileX + xOffset + 64) % 64;
-                int tileY = (newTileY + yOffset + 64) % 64;
-                if (collisionTile(worldTilemap[tileY * 64 + tileX]))
-                {
-                    xSpeed = 0;
-                    ySpeed = 0;
-                }
-            }
+            xSpeed = 0;
+            ySpeed = 0;
         }
 
         if (!xSpeed && !ySpeed)
