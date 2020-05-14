@@ -8,6 +8,8 @@
         "*.gba": true,
         "**/*.ase": true,
         "*.sav": true,
-        "docs/": true
+        "docs/": true,
+        "tilemaps/*.c": true,
+        "tilemaps/*.h": true
     }
 }

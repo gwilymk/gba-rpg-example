@@ -7,3 +7,5 @@ images/*.s
 *.sav
 docs/
 *.dump
+tilemaps/*.c
+tilemaps/*.h
