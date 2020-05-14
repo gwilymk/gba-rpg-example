@@ -1,0 +1,9 @@
+images/*.h
+images/*.s
+*.o
+*.d
+*.elf
+*.gba
+*.sav
+docs/
+*.dump

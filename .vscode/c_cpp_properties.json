@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64",
+            "compilerArgs": [
+                "-fno-implicit-function-declaration"
+            ],
+            "includePath": [
+                "${workspaceFolder}/images",
+                "/home/gwilym/Install/libgba/include",
+                "${workspaceFolder}/include"
+            ]
+        }
+    ],
+    "version": 4
+}
