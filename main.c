@@ -41,7 +41,7 @@ int main(void)
     Background_SetTileBackgroundNumber(BackgroundNumber_1, 0);
     Background_SetPriority(BackgroundNumber_1, 0);
 
-    *((u16 *)0x04000050) = 0b00010001100000111;
+    Graphics_SetBlendingMode(GraphicsBlendingMode_Alpha);
 
     for (int y = 0; y < 64; y++)
     {

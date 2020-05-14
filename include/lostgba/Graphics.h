@@ -52,6 +52,16 @@ void Graphics_SetMode(struct GraphicsSettings graphicsSettings);
 /** Controls whether we should trigger vblank interrupts */
 void Graphics_SetVBlankInterrupt(bool enabled);
 
+/** The possible blending modes for the graphics */
+enum GraphicsBlendingMode
+{
+    GraphicsBlendingMode_Disabled, /**< Do no blending */
+    GraphicsBlendingMode_Alpha,    /**<Alpha blending */
+};
+
+/** Controls the blending mode */
+void Graphics_SetBlendingMode(enum GraphicsBlendingMode blendMode);
+
 #define Graphics_ScreenWidth 240
 #define Graphics_ScreenHeight 160
 
