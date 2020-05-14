@@ -9,9 +9,13 @@ IMAGES := $(shell find images -name '*.png')
 IMAGE_OBJS := $(patsubst %.png,%.o,$(IMAGES))
 IMAGE_HEADERS := $(patsubst %.png,%.h,$(IMAGES))
 
+TILEMAPS := $(shell find tilemaps -name '*.csv')
+TILEMAP_OBJS := $(patsubst %.csv,%.o,$(TILEMAPS))
+TILEMAP_HEADERS := $(patsubst %.csv,%.h,$(TILEMAPS))
+
 CFILES  := $(shell find -name '*.c')
 HFILES  := $(shell find -name '*.h')
-OBJS    := $(patsubst %.c,%.o,$(CFILES)) $(IMAGE_OBJS)
+OBJS    := $(patsubst %.c,%.o,$(CFILES)) $(IMAGE_OBJS) $(TILEMAP_OBJS)
 DEPS    := $(patsubst %.c,%.d,$(CFILES))
 
 # --- Build defines ---------------------------------------------------
@@ -51,12 +55,12 @@ $(TARGET).dump: $(TARGET).elf Makefile
 	@echo [OBJDUMP]
 	@$(PREFIX)objdump -Sd $< > $@
 
-.SECONDARY: $(IMAGE_HEADERS)
+.SECONDARY: $(IMAGE_HEADERS) $(TILEMAP_HEADERS)
 
 %.o : %.c
 %.o : %.s
 
-%.o : %.c Makefile $(IMAGE_HEADERS)
+%.o : %.c Makefile $(IMAGE_HEADERS) $(TILEMAP_HEADERS)
 	@echo [CC] $<
 	@$(CC) -c $< $(CFLAGS) -o $@ -MMD -MP
 
@@ -66,7 +70,12 @@ $(TARGET).dump: $(TARGET).elf Makefile
 
 %.s %.h: %.png Makefile
 	@echo [GRIT] $<
-	@(cd `dirname $<` && grit `basename $<` -gB4 -gt -Mw2 -Mh2)
+	@(cd `dirname $<` && grit `basename $<` -gB8 -gt -Mw1 -Mh1)
+
+tilemaps/%.c tilemaps/%.h : tilemaps/%.csv Makefile
+	@echo [TILEMAP] $<
+	@(echo "#pragma once" && echo "extern int $(*F)Tilemap[];") > tilemaps/$*.h
+	@(echo "int $(*F)Tilemap[] = {" && sed -e 's/$$/,/' "$<" && echo "};") > tilemaps/$*.c 
 
 # --- Build -----------------------------------------------------------
 # Build process starts here!
