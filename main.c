@@ -16,10 +16,25 @@ bool collisionTile(int tile)
            tile == 56 || tile == 57;   // tree
 }
 
+int positiveModulo(int i, int n)
+{
+    return ((i % n) + n) % n;
+}
+
+int divRoundDown(int i, int n)
+{
+    if (i < 0)
+    {
+        return i / n - 1;
+    }
+
+    return i / n;
+}
+
 bool willBeCollision(int targetX, int targetY)
 {
-    int newTileX = (targetX / 8) % 64;
-    int newTileY = (targetY / 8) % 64;
+    int newTileX = divRoundDown(targetX, 8) % 64;
+    int newTileY = divRoundDown(targetY, 8) % 64;
 
     bool xExactlyOnBoundary = targetX % 8 == 0;
     bool yExactlyOnBoundary = targetY % 8 == 0;
@@ -28,8 +43,8 @@ bool willBeCollision(int targetX, int targetY)
     {
         for (int xOffset = 0; xOffset <= (xExactlyOnBoundary ? 1 : 2); xOffset++)
         {
-            int tileX = (newTileX + xOffset + 64) % 64;
-            int tileY = (newTileY + yOffset + 64) % 64;
+            int tileX = positiveModulo(newTileX + xOffset, 64);
+            int tileY = positiveModulo(newTileY + yOffset, 64);
             if (collisionTile(worldTilemap[tileY * 64 + tileX]))
             {
                 return true;
