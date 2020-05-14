@@ -10,6 +10,12 @@
 #include "images/character.h"
 #include "tilemaps/world.h"
 
+bool collisionTile(int tile)
+{
+    return tile == 21 || tile == 22 || // bush
+           tile == 56 || tile == 57;   // tree
+}
+
 int main(void)
 {
     Interrupt_Init();
@@ -86,8 +92,8 @@ int main(void)
 
     ObjectAttribute_SetPos(character, Graphics_ScreenWidth / 2, Graphics_ScreenHeight / 2);
 
-    int x = 0;
-    int y = 0;
+    int x = Graphics_ScreenWidth / 2;
+    int y = Graphics_ScreenHeight / 2;
 
     int frame = 0;
     int frameSkip = 0;
@@ -120,64 +126,81 @@ int main(void)
 
     while (true)
     {
+        int xSpeed = 0;
+        int ySpeed = 0;
         SystemCall_WaitForVBlank();
 
         Input_UpdateKeyState();
 
-        bool moving = false;
         if (Input_IsKeyDown(InputKey_Up))
         {
-            y -= SPEED;
+            ySpeed = -SPEED;
             if (frame >= UP_END - UP_START)
             {
                 frame = 0;
             }
             currentFrame = UP_START + frame - 1;
 
-            moving = true;
             direction = Direction_Up;
         }
 
         if (Input_IsKeyDown(InputKey_Down))
         {
-            y += SPEED;
+            ySpeed = SPEED;
             if (frame >= DOWN_END - DOWN_START)
             {
                 frame = 0;
             }
             currentFrame = DOWN_START + frame - 1;
 
-            moving = true;
             direction = Direction_Down;
         }
 
         if (Input_IsKeyDown(InputKey_Left))
         {
-            x -= SPEED;
+            xSpeed = -SPEED;
             if (frame >= LEFT_END - LEFT_START)
             {
                 frame = 0;
             }
             currentFrame = LEFT_START + frame - 1;
 
-            moving = true;
             direction = Direction_Left;
         }
 
         if (Input_IsKeyDown(InputKey_Right))
         {
-            x += SPEED;
+            xSpeed = SPEED;
             if (frame >= RIGHT_END - RIGHT_START)
             {
                 frame = 0;
             }
             currentFrame = RIGHT_START + frame - 1;
 
-            moving = true;
             direction = Direction_Right;
         }
 
-        if (!moving)
+        int newTileX = ((x + xSpeed) / 8) % 64;
+        int newTileY = ((y + ySpeed) / 8) % 64;
+
+        bool xExactlyOnBoundary = (x + xSpeed) % 8 == 0;
+        bool yExactlyOnBoundary = (y + ySpeed) % 8 == 0;
+
+        for (int yOffset = 1; yOffset <= (yExactlyOnBoundary ? 1 : 2); yOffset++)
+        {
+            for (int xOffset = 0; xOffset <= (xExactlyOnBoundary ? 1 : 2); xOffset++)
+            {
+                int tileX = (newTileX + xOffset + 64) % 64;
+                int tileY = (newTileY + yOffset + 64) % 64;
+                if (collisionTile(worldTilemap[tileY * 64 + tileX]))
+                {
+                    xSpeed = 0;
+                    ySpeed = 0;
+                }
+            }
+        }
+
+        if (!xSpeed && !ySpeed)
         {
             switch (direction)
             {
@@ -196,6 +219,9 @@ int main(void)
             }
         }
 
+        x += xSpeed;
+        y += ySpeed;
+
         frameSkip++;
 
         if (frameSkip == LOOPS_PER_FRAME)
@@ -206,10 +232,10 @@ int main(void)
 
         ObjectAttribute_SetTile(character, currentFrame * 4);
 
-        Background_SetHorizontalOffset(BackgroundNumber_0, x);
-        Background_SetVerticalOffset(BackgroundNumber_0, y);
-        Background_SetHorizontalOffset(BackgroundNumber_1, x);
-        Background_SetVerticalOffset(BackgroundNumber_1, y);
+        Background_SetHorizontalOffset(BackgroundNumber_0, x - Graphics_ScreenWidth / 2);
+        Background_SetVerticalOffset(BackgroundNumber_0, y - Graphics_ScreenHeight / 2);
+        Background_SetHorizontalOffset(BackgroundNumber_1, x - Graphics_ScreenWidth / 2);
+        Background_SetVerticalOffset(BackgroundNumber_1, y - Graphics_ScreenHeight / 2);
 
         ObjectAttributeBuffer_CopyBufferToMemory();
     }
