@@ -204,9 +204,13 @@ int main(void)
             direction = Direction_Right;
         }
 
-        if (willBeCollision(x + xSpeed, y + ySpeed))
+        if (willBeCollision(x + xSpeed, y))
         {
             xSpeed = 0;
+        }
+
+        if (willBeCollision(x, y + ySpeed))
+        {
             ySpeed = 0;
         }
 
