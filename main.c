@@ -19,6 +19,7 @@ int main(void)
     struct GraphicsSettings settings = {
         .graphicsMode = GraphicsMode_0,
         .enableBG0 = true,
+        .enableBG1 = true,
         .enableSprites = true};
 
     Graphics_SetMode(settings);
@@ -32,12 +33,39 @@ int main(void)
     Background_SetSize(BackgroundNumber_0, BackgroundSize_64x64);
     Background_SetScreenBaseBlock(BackgroundNumber_0, 20);
     Background_SetTileBackgroundNumber(BackgroundNumber_0, 0);
+    Background_SetPriority(BackgroundNumber_0, 1);
+
+    Background_SetColourMode(BackgroundNumber_1, BackgroundColourMode_8PP);
+    Background_SetSize(BackgroundNumber_1, BackgroundSize_64x64);
+    Background_SetScreenBaseBlock(BackgroundNumber_1, 24);
+    Background_SetTileBackgroundNumber(BackgroundNumber_1, 0);
+    Background_SetPriority(BackgroundNumber_1, 0);
+
+    *((u16 *)0x04000050) = 0b00010001100000111;
 
     for (int y = 0; y < 64; y++)
     {
         for (int x = 0; x < 64; x++)
         {
-            Background_SetTile(20, BackgroundSize_64x64, x, y, worldTilemap[x + y * 64], false, false, 0);
+            int tile = worldTilemap[x + y * 64];
+            Background_SetTile(20, BackgroundSize_64x64, x, y, tile, false, false, 0);
+
+            switch (tile)
+            {
+            case 5:
+            case 6:
+            case 8:
+            case 9:
+            case 24:
+            case 25:
+            case 40:
+            case 41:
+                Background_SetTile(24, BackgroundSize_64x64, x, y, tile, false, false, 0);
+                break;
+            default:
+                Background_SetTile(24, BackgroundSize_64x64, x, y, 0, false, false, 0);
+                break;
+            }
         }
     }
 
@@ -54,6 +82,7 @@ int main(void)
     ObjectAttribute_SetColourMode(character, ObjectAttributeColourMode_4PP);
     ObjectAttribute_SetSize(character, ObjectAttributeSize_16);
     ObjectAttribute_SetShape(character, ObjectAttributeShape_Square);
+    ObjectAttribute_SetPriority(character, 1);
 
     ObjectAttribute_SetPos(character, Graphics_ScreenWidth / 2, Graphics_ScreenHeight / 2);
 
@@ -179,6 +208,8 @@ int main(void)
 
         Background_SetHorizontalOffset(BackgroundNumber_0, x);
         Background_SetVerticalOffset(BackgroundNumber_0, y);
+        Background_SetHorizontalOffset(BackgroundNumber_1, x);
+        Background_SetVerticalOffset(BackgroundNumber_1, y);
 
         ObjectAttributeBuffer_CopyBufferToMemory();
     }

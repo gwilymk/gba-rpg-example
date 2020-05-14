@@ -76,10 +76,10 @@ u16 *Background_VerticalOffsetBaseAddr = (u16 *)0x4000012;
 
 void Background_SetHorizontalOffset(enum BackgroundNumber backgroundNumber, int hOffset)
 {
-    Background_HorizontalOffsetBaseAddr[backgroundNumber] = hOffset;
+    *(Background_HorizontalOffsetBaseAddr + 2 * backgroundNumber) = hOffset;
 }
 
 void Background_SetVerticalOffset(enum BackgroundNumber backgroundNumber, int vOffset)
 {
-    Background_VerticalOffsetBaseAddr[backgroundNumber] = vOffset;
+    *(Background_VerticalOffsetBaseAddr + 2 * backgroundNumber) = vOffset;
 }
