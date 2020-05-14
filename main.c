@@ -40,6 +40,17 @@ bool willBeCollision(int targetX, int targetY)
     return false;
 }
 
+u32 randomNumber(void)
+{
+    static u32 state = 12023908;
+
+    state ^= state << 13;
+    state ^= state >> 17;
+    state ^= state << 5;
+
+    return state;
+}
+
 int main(void)
 {
     Interrupt_Init();
@@ -135,6 +146,7 @@ int main(void)
 #define UP_END 41
 
 #define DOWN_IDLE 1
+#define DOWN_BLINK 2
 #define RIGHT_IDLE 11
 #define LEFT_IDLE 22
 #define UP_IDLE 33
@@ -222,7 +234,15 @@ int main(void)
                 currentFrame = UP_IDLE - 1;
                 break;
             case Direction_Down:
-                currentFrame = DOWN_IDLE - 1;
+                if ((currentFrame == DOWN_BLINK - 1 && frameSkip == 0) || currentFrame != DOWN_BLINK - 1)
+                {
+                    currentFrame = DOWN_IDLE - 1;
+                }
+
+                if (frameSkip == 0 && randomNumber() % 120 == 0)
+                {
+                    currentFrame = DOWN_BLINK - 1;
+                }
                 break;
             case Direction_Left:
                 currentFrame = LEFT_IDLE - 1;
