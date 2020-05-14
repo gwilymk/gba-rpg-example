@@ -3,6 +3,7 @@
 #include <lostgba/TileMap.h>
 #include <lostgba/SystemCalls.h>
 #include <lostgba/Background.h>
+#include <lostgba/Input.h>
 
 #include "images/tileset.h"
 #include "tilemaps/world.h"
@@ -35,8 +36,36 @@ int main(void)
         }
     }
 
+    int x = 0;
+    int y = 0;
+#define SPEED 1
     while (true)
     {
         SystemCall_WaitForVBlank();
+
+        Input_UpdateKeyState();
+
+        if (Input_IsKeyDown(InputKey_Up))
+        {
+            y -= SPEED;
+        }
+
+        if (Input_IsKeyDown(InputKey_Down))
+        {
+            y += SPEED;
+        }
+
+        if (Input_IsKeyDown(InputKey_Left))
+        {
+            x -= SPEED;
+        }
+
+        if (Input_IsKeyDown(InputKey_Right))
+        {
+            x += SPEED;
+        }
+
+        Background_SetHorizontalOffset(BackgroundNumber_0, x);
+        Background_SetVerticalOffset(BackgroundNumber_0, y);
     }
 }

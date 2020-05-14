@@ -70,3 +70,16 @@ void LOSTGBA_UNSAFE(Background_SetTile)(int screenBaseBlock, enum BackgroundSize
 
     *(VRAM_BASE + (SCREEN_BLOCK_LENGTH * (screenBaseBlock + screenBlockOffset)) + screenBlockStep) = screenEntry;
 }
+
+u16 *Background_HorizontalOffsetBaseAddr = (u16 *)0x04000010;
+u16 *Background_VerticalOffsetBaseAddr = (u16 *)0x4000012;
+
+void Background_SetHorizontalOffset(enum BackgroundNumber backgroundNumber, int hOffset)
+{
+    Background_HorizontalOffsetBaseAddr[backgroundNumber] = hOffset;
+}
+
+void Background_SetVerticalOffset(enum BackgroundNumber backgroundNumber, int vOffset)
+{
+    Background_VerticalOffsetBaseAddr[backgroundNumber] = vOffset;
+}

@@ -123,4 +123,9 @@ void Background_SetSize(enum BackgroundNumber backgroundNumber, enum BackgroundS
     } while (0)
 /** Unsafe version of Background_SetTile */
 void LOSTGBA_UNSAFE(Background_SetTile)(int screenBaseBlock, enum BackgroundSize backgroundSize, int x, int y, int tileId, bool hflip, bool vflip, int paletteBank);
+
+/** Sets the horizontal offset for a given background */
+void Background_SetHorizontalOffset(enum BackgroundNumber backgroundNumber, int hOffset);
+/** Sets the vertical offset for a given background */
+void Background_SetVerticalOffset(enum BackgroundNumber backgroundNumber, int vOffset);
 /** @} */
