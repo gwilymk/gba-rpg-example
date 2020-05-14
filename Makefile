@@ -70,7 +70,7 @@ $(TARGET).dump: $(TARGET).elf Makefile
 
 %.s %.h: %.png Makefile
 	@echo [GRIT] $<
-	@(cd `dirname $<` && grit `basename $<` -gB8 -gt -Mw1 -Mh1)
+	@(cd $(*D) && grit $(<F) $$(cat $(*F).grit))
 
 tilemaps/%.c tilemaps/%.h : tilemaps/%.csv Makefile
 	@echo [TILEMAP] $<
