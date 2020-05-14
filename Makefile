@@ -68,7 +68,7 @@ $(TARGET).dump: $(TARGET).elf Makefile
 	@echo [ASM] $<
 	@$(CC) -c $< $(CFLAGS) -o $@
 
-%.s %.h: %.png Makefile
+%.s %.h: %.png %.grit Makefile
 	@echo [GRIT] $<
 	@(cd $(*D) && grit $(<F) $$(cat $(*F).grit))
 
