@@ -5,6 +5,7 @@
 #include "spng/spng.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 struct Image
 {
@@ -153,4 +154,21 @@ int Image_Width(struct Image *img)
 int Image_Height(struct Image *img)
 {
     return img->height;
+}
+
+struct Colour Image_Colour(struct Image *img, int x, int y)
+{
+    assert(0 <= x && x < Image_Width(img));
+    assert(0 <= y && y < Image_Height(img));
+
+    int baseIndex = (y * Image_Width(img) + x) * 4;
+    assert(baseIndex + 4 <= img->bufferLen);
+
+    struct Colour colour = {
+        .r = img->buffer[baseIndex],
+        .g = img->buffer[baseIndex + 1],
+        .b = img->buffer[baseIndex + 2],
+        .a = img->buffer[baseIndex + 3]};
+
+    return colour;
 }

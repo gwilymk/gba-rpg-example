@@ -5,12 +5,17 @@
 #include <stdint.h>
 #include <limits.h>
 
+uint16_t rgb15(int r, int g, int b)
+{
+    return ((r >> 3) & 31) | (((g >> 3) & 31) << 5) | (((b >> 3) & 31) << 10);
+}
+
 // Returns -1 on an invalid number
 static int parseTileSize(const char *tileSizeString)
 {
     char *end;
     long int tileSize = strtol(tileSizeString, &end, 10);
-    if (*end != '\0' || tileSize <= 0 || tileSize >= INT_MAX)
+    if (*end != '\0' || tileSize <= 0 || tileSize >= INT32_MAX)
     {
         return -1;
     }
@@ -28,7 +33,7 @@ int main(int argc, char **argv)
     }
 
     int tileSize = parseTileSize(argv[2]);
-    if (tileSize == -1)
+    if (tileSize == -1 || tileSize % 8 != 0)
     {
         fprintf(stderr, "Invalid tile size %s\n", argv[2]);
         return 1;
@@ -62,7 +67,17 @@ int main(int argc, char **argv)
     int tilesX = width / tileSize;
     int tilesY = height / tileSize;
 
-    printf("%dx%d\n", tilesX, tilesY);
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            struct Colour c = Image_Colour(img, x, y);
+            uint16_t gbaColour = rgb15(c.r, c.g, c.b);
+            printf("%4x ", gbaColour);
+        }
+
+        printf("\n");
+    }
 
 exit:
     Image_Free(img);
