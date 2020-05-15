@@ -11,20 +11,25 @@ struct Image
     size_t bufferLen;
     unsigned char *buffer;
 
+    uint32_t width;
+    uint32_t height;
+
     char *error;
 };
 
 struct Image *Image_New(const char *filename)
 {
-    struct Image *img = calloc(1, sizeof(struct Image));
     char *pngBuffer = NULL;
+    FILE *png = NULL;
+    spng_ctx *ctx = NULL;
 
+    struct Image *img = calloc(1, sizeof(struct Image));
     if (img == NULL)
     {
         goto error;
     }
 
-    FILE *png = fopen(filename, "rb");
+    png = fopen(filename, "rb");
     if (png == NULL)
     {
         asprintf(&img->error, "Failed to open file %s", filename);
@@ -57,7 +62,7 @@ struct Image *Image_New(const char *filename)
     fclose(png);
     png = NULL;
 
-    spng_ctx *ctx = spng_ctx_new(0);
+    ctx = spng_ctx_new(0);
     if (ctx == NULL)
     {
         asprintf(&img->error, "Failed to create png context");
@@ -84,6 +89,17 @@ struct Image *Image_New(const char *filename)
         asprintf(&img->error, "Failed to get decoded image size: %s", spng_strerror(err));
         goto error;
     }
+
+    struct spng_ihdr ihdr;
+    err = spng_get_ihdr(ctx, &ihdr);
+    if (err)
+    {
+        asprintf(&img->error, "Failed to get IHDR: %s", spng_strerror(err));
+        goto error;
+    }
+
+    img->width = ihdr.width;
+    img->height = ihdr.height;
 
     img->buffer = malloc(img->bufferLen);
     if (img->buffer == NULL)
@@ -127,4 +143,14 @@ void Image_Free(struct Image *img)
     free(img->error);
     free(img->buffer);
     free(img);
+}
+
+int Image_Width(struct Image *img)
+{
+    return img->width;
+}
+
+int Image_Height(struct Image *img)
+{
+    return img->height;
 }
