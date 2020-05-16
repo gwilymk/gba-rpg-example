@@ -10,6 +10,7 @@
 static void printPalette(FILE *file, struct Palette16 *palette, uint16_t transparent);
 static int transparentPaletteIndex(struct Palette16 *palette, uint16_t colour, uint16_t transparent);
 static void printResults(FILE *file, struct Image *img, struct PaletteOptimisationResults results, uint16_t transparent, int tilesX, int tilesY, int tileSize);
+static struct PaletteOptimiser *optimiserForImage(struct Image *img, int tileSize, int tilesX, int tilesY);
 
 uint16_t rgb15(struct Colour c)
 {
@@ -105,7 +106,27 @@ int main(int argc, char **argv)
     int tilesX = width / tileSize;
     int tilesY = height / tileSize;
 
-    optimiser = PaletteOptimiser_New(tilesX * tilesY);
+    optimiser = optimiserForImage(img, tileSize, tilesX, tilesY);
+    struct PaletteOptimisationResults results = PaletteOptimiser_OptimisePalettes(optimiser, transparent);
+
+    if (results.nPalettes == 0)
+    {
+        fprintf(stderr, "Failed to find a set of covering palettes");
+        statusCode = 1;
+        goto exit;
+    }
+
+    printResults(stdout, img, results, transparent, tilesX, tilesY, tileSize);
+
+exit:
+    Image_Free(img);
+    PaletteOptimiser_Free(optimiser);
+    return statusCode;
+}
+
+static struct PaletteOptimiser *optimiserForImage(struct Image *img, int tileSize, int tilesX, int tilesY)
+{
+    struct PaletteOptimiser *optimiser = PaletteOptimiser_New(tilesX * tilesY);
     assert(optimiser);
 
     for (int y = 0; y < tilesY; y++)
@@ -125,8 +146,7 @@ int main(int argc, char **argv)
                     if (Palette16_AddColour(palette, colour) == PALETTE16_NUM_COLOURS)
                     {
                         fprintf(stderr, "Tile %d, %d contains more than %d colours!", x, y, PALETTE16_NUM_COLOURS);
-                        statusCode = 1;
-                        goto exit;
+                        exit(1);
                     }
                 }
             }
@@ -135,27 +155,12 @@ int main(int argc, char **argv)
             if (err)
             {
                 fprintf(stderr, "Image contains more than 256 colours!");
-                statusCode = 1;
-                goto exit;
+                exit(1);
             }
         }
     }
 
-    struct PaletteOptimisationResults results = PaletteOptimiser_OptimisePalettes(optimiser, transparent);
-
-    if (results.nPalettes == 0)
-    {
-        fprintf(stderr, "Failed to find a set of covering palettes");
-        statusCode = 1;
-        goto exit;
-    }
-
-    printResults(stdout, img, results, transparent, tilesX, tilesY, tileSize);
-
-exit:
-    Image_Free(img);
-    PaletteOptimiser_Free(optimiser);
-    return statusCode;
+    return optimiser;
 }
 
 static void printResults(FILE *file, struct Image *img, struct PaletteOptimisationResults results, uint16_t transparent, int tilesX, int tilesY, int tileSize)
