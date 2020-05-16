@@ -6,8 +6,8 @@
 #include <lostgba/Input.h>
 #include <lostgba/ObjectAttribute.h>
 
-#include "images/tileset.h"
-#include "images/character.h"
+#include "images/tileset.png.h"
+#include "images/character.png.h"
 #include "tilemaps/world.h"
 
 bool collisionTile(int tile)
@@ -80,18 +80,18 @@ int main(void)
 
     Graphics_SetMode(settings);
 
-    TileMap_CopyToBackgroundTiles(0, tilesetTiles, tilesetTilesLen);
-    TileMap_CopyToBackgroundPalette(tilesetPal);
-    TileMap_CopyToSpritePalette(characterPal);
-    TileMap_CopyToSpriteTiles(0, characterTiles, characterTilesLen);
+    TileMap_CopyToBackgroundTiles(0, tilesetTileData, tilesetTileDataLength);
+    TileMap_CopyToBackgroundPalette(tilesetPaletteData);
+    TileMap_CopyToSpritePalette(characterPaletteData);
+    TileMap_CopyToSpriteTiles(0, characterTileData, characterTileDataLength);
 
-    Background_SetColourMode(BackgroundNumber_0, BackgroundColourMode_8PP);
+    Background_SetColourMode(BackgroundNumber_0, BackgroundColourMode_4PP);
     Background_SetSize(BackgroundNumber_0, BackgroundSize_64x64);
     Background_SetScreenBaseBlock(BackgroundNumber_0, 20);
     Background_SetTileBackgroundNumber(BackgroundNumber_0, 0);
     Background_SetPriority(BackgroundNumber_0, 1);
 
-    Background_SetColourMode(BackgroundNumber_1, BackgroundColourMode_8PP);
+    Background_SetColourMode(BackgroundNumber_1, BackgroundColourMode_4PP);
     Background_SetSize(BackgroundNumber_1, BackgroundSize_64x64);
     Background_SetScreenBaseBlock(BackgroundNumber_1, 24);
     Background_SetTileBackgroundNumber(BackgroundNumber_1, 0);
@@ -104,7 +104,8 @@ int main(void)
         for (int x = 0; x < 64; x++)
         {
             int tile = worldTilemap[x + y * 64];
-            Background_SetTile(20, BackgroundSize_64x64, x, y, tile, false, false, 0);
+            int paletteNumber = tilesetTilePaletteNumber[tile];
+            Background_SetTile(20, BackgroundSize_64x64, x, y, tile, false, false, paletteNumber);
 
             switch (tile)
             {
@@ -116,10 +117,10 @@ int main(void)
             case 25:
             case 40:
             case 41:
-                Background_SetTile(24, BackgroundSize_64x64, x, y, tile, false, false, 0);
+                Background_SetTile(24, BackgroundSize_64x64, x, y, tile, false, false, paletteNumber);
                 break;
             default:
-                Background_SetTile(24, BackgroundSize_64x64, x, y, 0, false, false, 0);
+                Background_SetTile(24, BackgroundSize_64x64, x, y, 0, false, false, paletteNumber);
                 break;
             }
         }

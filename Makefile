@@ -6,14 +6,14 @@ PROJ    := rpg-example
 TARGET  := $(PROJ)
 
 IMAGES := $(shell find images -name '*.png')
-IMAGE_OBJS := $(patsubst %.png,%.o,$(IMAGES))
-IMAGE_HEADERS := $(patsubst %.png,%.h,$(IMAGES))
+IMAGE_OBJS := $(patsubst %.png,%.png.o,$(IMAGES))
+IMAGE_CFILES := $(patsubst %.png,%.png.c,$(IMAGES))
 
 TILEMAPS := $(shell find tilemaps -name '*.csv')
 TILEMAP_OBJS := $(patsubst %.csv,%.o,$(TILEMAPS))
 TILEMAP_HEADERS := $(patsubst %.csv,%.h,$(TILEMAPS))
 
-CFILES  := $(shell find -name '*.c')
+CFILES  := $(shell find . -path ./tools -prune -o -type f -name '*.c' -print)
 HFILES  := $(shell find -name '*.h')
 OBJS    := $(patsubst %.c,%.o,$(CFILES)) $(IMAGE_OBJS) $(TILEMAP_OBJS)
 DEPS    := $(patsubst %.c,%.d,$(CFILES))
@@ -29,12 +29,18 @@ ARCH    := -mthumb-interwork -mthumb
 SPECS   := -specs=gba.specs
 
 CFLAGS  := $(ARCH) -O2 -flto -g \
-	-Wall -Wextra -fno-strict-aliasing -Werror=implicit-function-declaration -Wstrict-prototypes -Wwrite-strings -Wuninitialized \
+	-Wall -Wextra -fno-strict-aliasing -Werror=implicit-function-declaration -Wstrict-prototypes -Wwrite-strings -Wuninitialized -Werror=return-type \
 	-I$(LIBGBA)/include -Iinclude -Iimages
+
+PNGTOGBA := tools/pngtogba/pngtogba
 
 LDFLAGS := $(ARCH) $(SPECS) -flto -g -O2
 
 default: build
+
+.PHONY: $(PNGTOGBA)
+$(PNGTOGBA):
+	(cd $(dir $(PNGTOGBA)) && $(MAKE) pngtogba)
 
 .PHONY : build clean default docs dump gdb
 .SUFFIXES:
@@ -55,12 +61,12 @@ $(TARGET).dump: $(TARGET).elf Makefile
 	@echo [OBJDUMP]
 	@$(PREFIX)objdump -Sd $< > $@
 
-.SECONDARY: $(IMAGE_HEADERS) $(TILEMAP_HEADERS)
+.SECONDARY: $(TILEMAP_HEADERS) $(IMAGE_CFILES)
 
 %.o : %.c
 %.o : %.s
 
-%.o : %.c Makefile $(IMAGE_HEADERS) $(TILEMAP_HEADERS)
+%.o : %.c Makefile $(TILEMAP_HEADERS)
 	@echo [CC] $<
 	@$(CC) -c $< $(CFLAGS) -o $@ -MMD -MP
 
@@ -68,9 +74,9 @@ $(TARGET).dump: $(TARGET).elf Makefile
 	@echo [ASM] $<
 	@$(CC) -c $< $(CFLAGS) -o $@
 
-%.s %.h: %.png %.grit Makefile
-	@echo [GRIT] $<
-	@(cd $(*D) && grit $(<F) $$(cat $(*F).grit))
+%.png.c: %.png.h %.png $(PNGTOGBA) Makefile
+	@echo [PNGTOGBA] $<
+	-@$(PNGTOGBA) $<
 
 tilemaps/%.c tilemaps/%.h : tilemaps/%.csv Makefile
 	@echo [TILEMAP] $<
@@ -87,7 +93,7 @@ $(TARGET).gba : $(TARGET).elf
 	@gbafix $@ > /dev/null
 
 $(TARGET).elf : $(OBJS)
-	@echo [LD] $<
+	@echo [LD] $@
 	@$(LD) $^ $(LDFLAGS) -o $@
 
 # --- Clean -----------------------------------------------------------
@@ -96,6 +102,7 @@ $(TARGET).elf : $(OBJS)
 clean :
 	@rm -fv $(TARGET).gba $(TARGET).elf $(TARGET).dump
 	@rm -fv $(OBJS) $(DEPS)
-	@rm -rf images/*.h images/*.s
+	@rm -rf images/*.c
+	@(cd $(dir $(PNGTOGBA)) && make clean)
 
 -include $(DEPS)

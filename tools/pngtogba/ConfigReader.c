@@ -40,8 +40,6 @@ uint16_t parseColour(const char *colourString)
         .g = (colourLong >> 8) & 255,
         .b = (colourLong >> 0) & 255};
 
-    printf("transparent colour: %02x%02x%02x\n", c.r, c.g, c.b);
-
     return rgb15(c);
 }
 

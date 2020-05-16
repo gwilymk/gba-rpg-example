@@ -7,6 +7,12 @@ CFLAGS := -std=c11 -g -O3 -flto \
 	-MMD -MP
 LFLAGS := $(CFLAGS) -lz -lm
 
+%.o : %.c
+
+%.o : %.c Makefile
+	@echo [CC] $<
+	@$(CC) $(CFLAGS) -c $< -o $@
+
 .PHONY: default
 default: pngtogba
 
@@ -15,6 +21,7 @@ clean:
 	rm -vf $(OBJS) $(DEPFILES)
 
 pngtogba: $(OBJS) Makefile
-	$(CC) -o $@ $(OBJS) $(LFLAGS) 
+	@echo [LD] $@
+	@$(CC) -o $@ $(OBJS) $(LFLAGS) 
 
 -include $(DEPFILES)

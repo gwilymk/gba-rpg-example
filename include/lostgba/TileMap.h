@@ -40,7 +40,7 @@ void TileMap_CopyToSpritePalette(const u16 paletteData[TileMap_PaletteLength]);
 /**
  * The unsafe version of TileMap_CopyToSpriteTiles
  */
-void LOSTGBA_UNSAFE(TileMap_CopyToSpriteTiles)(int tileNumber, const unsigned int *tileData, int length);
+void LOSTGBA_UNSAFE(TileMap_CopyToSpriteTiles)(int tileNumber, const u32 *tileData, int length);
 
 /**
  * @brief Copies the provided palette data to the background palette memory location
@@ -67,6 +67,6 @@ void TileMap_CopyToBackgroundPalette(const u16 paletteData[TileMap_PaletteLength
 /**
  * The unsafe version of TileMap_CopyToBackgroundPalette
  */
-void LOSTGBA_UNSAFE(TileMap_CopyToBackgroundTiles)(int backgroundNumber, const unsigned int *tileData, int length);
+void LOSTGBA_UNSAFE(TileMap_CopyToBackgroundTiles)(int backgroundNumber, const u32 *tileData, int length);
 
 /** @} */

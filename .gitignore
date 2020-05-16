@@ -1,5 +1,4 @@
-images/*.h
-images/*.s
+images/*.c
 *.o
 *.d
 *.elf

@@ -12,7 +12,7 @@ void TileMap_CopyToSpritePalette(const u16 paletteData[TileMap_PaletteLength])
 #define SPRITE_CHARBLOCK_BASE ((u16 *)0x06010000)
 #define CHARBLOCK_SIZE 0x4000
 
-void LOSTGBA_UNSAFE(TileMap_CopyToSpriteTiles)(int tileNumber, const unsigned int *tileData, int length)
+void LOSTGBA_UNSAFE(TileMap_CopyToSpriteTiles)(int tileNumber, const u32 *tileData, int length)
 {
     memcpy(SPRITE_CHARBLOCK_BASE + tileNumber * CHARBLOCK_SIZE, tileData, length);
 }
@@ -26,7 +26,7 @@ void TileMap_CopyToBackgroundPalette(const u16 paletteData[TileMap_PaletteLength
 
 #define TILE_MEMORY_LOCATION ((u16 *)0x06000000)
 
-void LOSTGBA_UNSAFE(TileMap_CopyToBackgroundTiles)(int tileNumber, const unsigned int *tileData, int length)
+void LOSTGBA_UNSAFE(TileMap_CopyToBackgroundTiles)(int tileNumber, const u32 *tileData, int length)
 {
     memcpy(TILE_MEMORY_LOCATION + tileNumber * CHARBLOCK_SIZE, tileData, length);
 }
