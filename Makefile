@@ -25,12 +25,18 @@ CC      := $(PREFIX)gcc
 LD      := $(PREFIX)gcc
 OBJCOPY := $(PREFIX)objcopy
 
+CFLAGS_COMMON := -std=gnu11 -Wall -Wextra -fno-strict-aliasing -Werror=implicit-function-declaration -Wstrict-prototypes -Wwrite-strings -Wuninitialized -Werror=return-type
+
+HOSTCC  := gcc
+HOSTLD  := $(HOSTCC)
+
+HOST_CFLAGS := $(CFLAGS_COMMON) -O3 -flto -g
+HOST_LDFLAGS := $(HOSTCC_FLAGS) -lz -lm
+
 ARCH    := -mthumb-interwork -mthumb
 SPECS   := -specs=gba.specs
 
-CFLAGS  := $(ARCH) -O2 -flto -g \
-	-Wall -Wextra -fno-strict-aliasing -Werror=implicit-function-declaration -Wstrict-prototypes -Wwrite-strings -Wuninitialized -Werror=return-type \
-	-I$(LIBGBA)/include -Iinclude -Iimages
+CFLAGS  := $(ARCH) -O2 -flto -g $(CFLAGS_COMMON) -Iinclude
 
 PNGTOGBA := tools/pngtogba/pngtogba
 
@@ -38,9 +44,21 @@ LDFLAGS := $(ARCH) $(SPECS) -flto -g -O2
 
 default: build
 
-.PHONY: $(PNGTOGBA)
-$(PNGTOGBA):
-	(cd $(dir $(PNGTOGBA)) && $(MAKE) pngtogba)
+tools/%.o : tools/%.c Makefile
+	@echo [HOSTCC] $<
+	@$(HOSTCC) $(HOST_CFLAGS) -MMD -MP -c $< -o $@
+
+#### PNGTOGBA ####
+
+PNGTOGBA_CFILES := $(shell find ./tools/pngtogba -name '*.c')
+PNGTOGBA_DEPS := $(patsubst %.c,%.d,$(PNGTOGBA_CFILES))
+PNGTOGBA_OBJS := $(patsubst %.c,%.o,$(PNGTOGBA_CFILES))
+
+$(PNGTOGBA): $(PNGTOGBA_OBJS)
+	@echo [HOSTLD] $@
+	@$(HOSTLD) $(HOST_LDFLAGS) -o $@ $(PNGTOGBA_OBJS)
+
+#### END PNGTOGBA ####
 
 .PHONY : build clean default docs dump gdb
 .SUFFIXES:
@@ -102,7 +120,7 @@ $(TARGET).elf : $(OBJS)
 clean :
 	@rm -fv $(TARGET).gba $(TARGET).elf $(TARGET).dump
 	@rm -fv $(OBJS) $(DEPS)
-	@rm -rf images/*.c
-	@(cd $(dir $(PNGTOGBA)) && make clean)
+	@rm -fv images/*.c
+	@rm -fv $(PNGTOGBA) $(PNGTOGBA_OBJS) $(PNGTOGBA_DEPS)
 
--include $(DEPS)
+-include $(DEPS) $(PNGTOGBA_DEPS)
