@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #define PALETTE16_NUM_COLOURS 16
+#define INVALID_COLOUR (1 << 15)
 
 struct Palette16;
 

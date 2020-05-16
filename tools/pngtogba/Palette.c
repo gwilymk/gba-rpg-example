@@ -27,6 +27,11 @@ void Palette16_Free(struct Palette16 *palette)
 
 int Palette16_AddColour(struct Palette16 *palette, uint16_t colour)
 {
+    if (colour == INVALID_COLOUR)
+    {
+        return Palette16_GetNumColours(palette);
+    }
+
     for (int i = 0; i < palette->numColours; i++)
     {
         // already contains this colour

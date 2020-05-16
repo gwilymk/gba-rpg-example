@@ -25,8 +25,6 @@ static int parseTileSize(const char *tileSizeString)
     return tileSize;
 }
 
-#define INVALID_COLOUR (1 << 15)
-
 // Returns INVALID_COLOUR if colour is invalid
 uint16_t parseColour(const char *colourString)
 {
@@ -48,9 +46,9 @@ uint16_t parseColour(const char *colourString)
 int main(int argc, char **argv)
 {
     int statusCode = 0;
-    if (argc != 4)
+    if (argc <= 2 || argc >= 5)
     {
-        fprintf(stderr, "Expected exactly 3 arguments, usage:\n%s pngfile tilesize transparentColour\n", argv[0]);
+        fprintf(stderr, "Expected 2 or 3 arguments, usage:\n%s pngfile tilesize transparentColour\n", argv[0]);
         return 1;
     }
 
@@ -61,11 +59,15 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    uint16_t transparent = parseColour(argv[3]);
-    if (transparent == INVALID_COLOUR)
+    uint16_t transparent = INVALID_COLOUR;
+    if (argc == 4)
     {
-        fprintf(stderr, "Invalid transparent colour %s\n", argv[3]);
-        return 1;
+        transparent = parseColour(argv[3]);
+        if (transparent == INVALID_COLOUR)
+        {
+            fprintf(stderr, "Invalid transparent colour %s\n", argv[3]);
+            return 1;
+        }
     }
 
     char *filename = argv[1];

@@ -180,7 +180,6 @@ static struct Palette16 *PaletteOptimiser_findMaximalPaletteFor(struct PaletteOp
 
         // Add this colour to the working palette
         uint16_t bestColour = optimiser->colours[bestIndex];
-        printf("Best colour: %d\n", bestColour);
         if (Palette16_AddColour(palette, bestColour) == PALETTE16_NUM_COLOURS)
         {
             break;
