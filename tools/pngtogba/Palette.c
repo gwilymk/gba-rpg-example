@@ -121,6 +121,47 @@ bool Palette16_HasColour(struct Palette16 *palette, uint16_t colour)
     return false;
 }
 
+int min(int a, int b)
+{
+    return a < b ? a : b;
+}
+
+int Palette16_UnionLength(struct Palette16 *first, struct Palette16 *second)
+{
+    int unionLength = 0;
+
+    int i = 0, j = 0;
+    int firstLength = Palette16_GetNumColours(first);
+    int secondLength = Palette16_GetNumColours(second);
+
+    while (i < firstLength && j < secondLength)
+    {
+        uint16_t firstColour = Palette16_GetColour(first, min(i, firstLength - 1));
+        uint16_t secondColour = Palette16_GetColour(second, min(j, secondLength - 1));
+
+        if (firstColour == secondColour)
+        {
+            i++;
+            j++;
+            unionLength += 1;
+        }
+
+        if (firstColour < secondColour)
+        {
+            i++;
+            unionLength += 1;
+        }
+
+        if (firstColour > secondColour)
+        {
+            j++;
+            unionLength += 1;
+        }
+    }
+
+    return unionLength;
+}
+
 #ifdef TEST
 
 #define DOTEST                                  \

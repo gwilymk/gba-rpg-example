@@ -20,3 +20,5 @@ int Palette16_AddColour(struct Palette16 *palette, uint16_t colour);
 int Palette16_Contains(struct Palette16 *first, struct Palette16 *second);
 
 bool Palette16_HasColour(struct Palette16 *palette, uint16_t colour);
+
+int Palette16_UnionLength(struct Palette16 *first, struct Palette16 *second);

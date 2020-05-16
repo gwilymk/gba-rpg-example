@@ -139,7 +139,9 @@ static struct Palette16 *PaletteOptimiser_findMaximalPaletteFor(struct PaletteOp
         {
             struct Palette16 *currentPalette = palettesToSatisfy[i];
 
-            if (currentPalette == NULL || Palette16_Contains(palette, currentPalette) != 1)
+            if (currentPalette == NULL ||                                                 // this one doesn't need checking any more
+                Palette16_UnionLength(palette, currentPalette) > PALETTE16_NUM_COLOURS || // this one cannot be completed with the available colours
+                Palette16_Contains(palette, currentPalette) == -1)                        // already satisfied
             {
                 continue;
             }
@@ -154,9 +156,9 @@ static struct Palette16 *PaletteOptimiser_findMaximalPaletteFor(struct PaletteOp
 
                 int colourIndex = PaletteOptimiser_getColourIndex(optimiser, colour);
                 colourUsage[colourIndex]++;
-            }
 
-            aColourIsUsed = true;
+                aColourIsUsed = true;
+            }
         }
 
         if (!aColourIsUsed)
