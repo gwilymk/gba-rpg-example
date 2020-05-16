@@ -171,11 +171,11 @@ static void printResults(FILE *file, struct Image *img, struct PaletteOptimisati
 
                 for (int innerX = 0; innerX < tileSize / 8; innerX++)
                 {
-                    for (int j = innerY; j < innerY + 8; j++)
+                    for (int j = innerY * 8; j < innerY * 8 + 8; j++)
                     {
                         fprintf(file, "0x");
 
-                        for (int i = innerX; i < innerX + 8; i++)
+                        for (int i = innerX * 8 + 7; i >= innerX * 8; i--)
                         {
                             struct Colour c = Image_Colour(img, x * tileSize + i, y * tileSize + j);
                             uint16_t colour = rgb15(c);
