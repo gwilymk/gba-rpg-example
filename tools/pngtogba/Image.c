@@ -162,7 +162,7 @@ struct Colour Image_Colour(struct Image *img, int x, int y)
     assert(0 <= y && y < Image_Height(img));
 
     int baseIndex = (y * Image_Width(img) + x) * 4;
-    assert(baseIndex + 4 <= img->bufferLen);
+    assert((size_t)baseIndex + 4 <= img->bufferLen);
 
     struct Colour colour = {
         .r = img->buffer[baseIndex],
