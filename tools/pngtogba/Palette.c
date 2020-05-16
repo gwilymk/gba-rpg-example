@@ -108,6 +108,19 @@ int Palette16_Contains(struct Palette16 *first, struct Palette16 *second)
     }
 }
 
+bool Palette16_HasColour(struct Palette16 *palette, uint16_t colour)
+{
+    for (int i = 0; i < Palette16_GetNumColours(palette); i++)
+    {
+        if (Palette16_GetColour(palette, i) == colour)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 #ifdef TEST
 
 #define DOTEST                                  \

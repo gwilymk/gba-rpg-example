@@ -1,13 +1,15 @@
 #include "Image.h"
+#include "PaletteOptimiser.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>
+#include <assert.h>
 
-uint16_t rgb15(int r, int g, int b)
+uint16_t rgb15(struct Colour c)
 {
-    return ((r >> 3) & 31) | (((g >> 3) & 31) << 5) | (((b >> 3) & 31) << 10);
+    return ((c.r >> 3) & 31) | (((c.g >> 3) & 31) << 5) | (((c.b >> 3) & 31) << 10);
 }
 
 // Returns -1 on an invalid number
@@ -41,6 +43,7 @@ int main(int argc, char **argv)
 
     char *filename = argv[1];
     struct Image *img = Image_New(filename);
+    struct PaletteOptimiser *optimiser = NULL;
 
     char *error = NULL;
     if (img == NULL || (error = Image_Error(img)) != NULL)
@@ -67,19 +70,52 @@ int main(int argc, char **argv)
     int tilesX = width / tileSize;
     int tilesY = height / tileSize;
 
-    for (int y = 0; y < height; y++)
-    {
-        for (int x = 0; x < width; x++)
-        {
-            struct Colour c = Image_Colour(img, x, y);
-            uint16_t gbaColour = rgb15(c.r, c.g, c.b);
-            printf("%4x ", gbaColour);
-        }
+    optimiser = PaletteOptimiser_New(tilesX * tilesY);
+    assert(optimiser);
 
-        printf("\n");
+    for (int y = 0; y < tilesY; y++)
+    {
+        for (int x = 0; x < tilesX; x++)
+        {
+            struct Palette16 *palette = Palette16_New();
+            assert(palette);
+
+            for (int j = 0; j < tileSize; j++)
+            {
+                for (int i = 0; i < tileSize; i++)
+                {
+                    struct Colour c = Image_Colour(img, x * tileSize + i, y * tileSize + j);
+                    uint16_t colour = rgb15(c);
+
+                    if (Palette16_AddColour(palette, colour) == PALETTE16_NUM_COLOURS)
+                    {
+                        fprintf(stderr, "Tile %d, %d contains more than %d colours!", x, y, PALETTE16_NUM_COLOURS);
+                        statusCode = 1;
+                        goto exit;
+                    }
+                }
+            }
+
+            int err = PaletteOptimiser_AddPalette(optimiser, palette);
+            if (err)
+            {
+                fprintf(stderr, "Image contains more than 256 colours!");
+                statusCode = 1;
+                goto exit;
+            }
+        }
+    }
+
+    struct PaletteOptimisationResults results = PaletteOptimiser_OptimisePalettes(optimiser);
+    printf("Needed %d palettes\n", results.nPalettes);
+
+    for (int i = 0; i < tilesX * tilesY; i++)
+    {
+        printf("Tile %d needs palette %d\n", i, results.paletteAssignment[i]);
     }
 
 exit:
     Image_Free(img);
+    PaletteOptimiser_Free(optimiser);
     return statusCode;
 }
