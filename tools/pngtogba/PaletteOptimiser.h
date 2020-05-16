@@ -17,4 +17,4 @@ struct PaletteOptimisationResults
     int *paletteAssignment;
 };
 
-struct PaletteOptimisationResults PaletteOptimiser_OptimisePalettes(struct PaletteOptimiser *optimiser);
+struct PaletteOptimisationResults PaletteOptimiser_OptimisePalettes(struct PaletteOptimiser *optimiser, uint16_t transparentColour);

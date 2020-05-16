@@ -25,12 +25,32 @@ static int parseTileSize(const char *tileSizeString)
     return tileSize;
 }
 
+#define INVALID_COLOUR (1 << 15)
+
+// Returns INVALID_COLOUR if colour is invalid
+uint16_t parseColour(const char *colourString)
+{
+    char *end;
+    long int colourLong = strtol(colourString, &end, 16);
+    if (*end != '\0' || colourLong < 0)
+    {
+        return INVALID_COLOUR;
+    }
+
+    struct Colour c = {
+        .r = (colourLong >> 8) & 255,
+        .g = (colourLong >> 4) & 255,
+        .b = (colourLong >> 0) & 255};
+
+    return rgb15(c);
+}
+
 int main(int argc, char **argv)
 {
     int statusCode = 0;
-    if (argc != 3)
+    if (argc != 4)
     {
-        fprintf(stderr, "Expected exactly 2 arguments, usage:\n%s pngfile tilesize\n", argv[0]);
+        fprintf(stderr, "Expected exactly 3 arguments, usage:\n%s pngfile tilesize transparentColour\n", argv[0]);
         return 1;
     }
 
@@ -38,6 +58,13 @@ int main(int argc, char **argv)
     if (tileSize == -1 || tileSize % 8 != 0)
     {
         fprintf(stderr, "Invalid tile size %s\n", argv[2]);
+        return 1;
+    }
+
+    uint16_t transparent = parseColour(argv[3]);
+    if (transparent == INVALID_COLOUR)
+    {
+        fprintf(stderr, "Invalid transparent colour %s\n", argv[3]);
         return 1;
     }
 
@@ -106,7 +133,7 @@ int main(int argc, char **argv)
         }
     }
 
-    struct PaletteOptimisationResults results = PaletteOptimiser_OptimisePalettes(optimiser);
+    struct PaletteOptimisationResults results = PaletteOptimiser_OptimisePalettes(optimiser, transparent);
     printf("Needed %d palettes\n", results.nPalettes);
 
     for (int i = 0; i < tilesX * tilesY; i++)

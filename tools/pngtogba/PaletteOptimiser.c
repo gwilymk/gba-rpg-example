@@ -124,10 +124,12 @@ static int PaletteOptimiser_getColourIndex(struct PaletteOptimiser *optimiser, u
 }
 
 // Array can contain null values which will be skipped
-static struct Palette16 *PaletteOptimiser_findMaximalPaletteFor(struct PaletteOptimiser *optimiser, int nPalettes, struct Palette16 *palettesToSatisfy[nPalettes])
+static struct Palette16 *PaletteOptimiser_findMaximalPaletteFor(struct PaletteOptimiser *optimiser, int nPalettes, struct Palette16 *palettesToSatisfy[nPalettes], uint16_t transparentColour)
 {
     struct Palette16 *palette = Palette16_New();
     assert(palette);
+
+    Palette16_AddColour(palette, transparentColour);
 
     while (true)
     {
@@ -189,7 +191,7 @@ static struct Palette16 *PaletteOptimiser_findMaximalPaletteFor(struct PaletteOp
 }
 
 // TODO: Select transparent colour
-struct PaletteOptimisationResults PaletteOptimiser_OptimisePalettes(struct PaletteOptimiser *optimiser)
+struct PaletteOptimisationResults PaletteOptimiser_OptimisePalettes(struct PaletteOptimiser *optimiser, uint16_t transparentColour)
 {
     struct Palette16 **palettes = calloc(MAX_COLOURS / PALETTE16_NUM_COLOURS, sizeof(struct Palette16 *));
     int *assignments = calloc(optimiser->nUsedPalettes, sizeof(int));
@@ -207,7 +209,7 @@ struct PaletteOptimisationResults PaletteOptimiser_OptimisePalettes(struct Palet
 
     while (satisfiedPalettes < optimiser->nUsedPalettes)
     {
-        struct Palette16 *palette = PaletteOptimiser_findMaximalPaletteFor(optimiser, optimiser->nUsedPalettes, palettesToSatisfy);
+        struct Palette16 *palette = PaletteOptimiser_findMaximalPaletteFor(optimiser, optimiser->nUsedPalettes, palettesToSatisfy, transparentColour);
         assert(palette);
 
         for (int i = 0; i < optimiser->nUsedPalettes; i++)
