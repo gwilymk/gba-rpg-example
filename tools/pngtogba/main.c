@@ -217,7 +217,13 @@ static int transparentPaletteIndex(struct Palette16 *palette, uint16_t colour, u
         return 0;
     }
 
-    return Palette16_GetIndex(palette, colour) + 1;
+    int index = Palette16_GetIndex(palette, colour);
+    if (colour < transparent)
+    {
+        return index + 1;
+    }
+
+    return index;
 }
 
 static void printPalette(FILE *file, struct Palette16 *palette, uint16_t transparent)
