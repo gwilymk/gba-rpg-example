@@ -115,15 +115,20 @@ int Palette16_Contains(struct Palette16 *first, struct Palette16 *second)
 
 bool Palette16_HasColour(struct Palette16 *palette, uint16_t colour)
 {
+    return Palette16_GetIndex(palette, colour) != -1;
+}
+
+int Palette16_GetIndex(struct Palette16 *palette, uint16_t colour)
+{
     for (int i = 0; i < Palette16_GetNumColours(palette); i++)
     {
         if (Palette16_GetColour(palette, i) == colour)
         {
-            return true;
+            return i;
         }
     }
 
-    return false;
+    return -1;
 }
 
 int min(int a, int b)

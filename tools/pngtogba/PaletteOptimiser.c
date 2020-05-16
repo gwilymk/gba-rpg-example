@@ -232,7 +232,11 @@ struct PaletteOptimisationResults PaletteOptimiser_OptimisePalettes(struct Palet
         if (currentPaletteNumber == MAX_COLOURS / PALETTE16_NUM_COLOURS)
         {
             printf("Failed to find covering palettes");
-            break;
+
+            struct PaletteOptimisationResults ret = {
+                .nPalettes = 0};
+
+            return ret;
         }
     }
 

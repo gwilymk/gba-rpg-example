@@ -7,6 +7,10 @@
 #include <limits.h>
 #include <assert.h>
 
+static void printPalette(struct Palette16 *palette, uint16_t transparent);
+static int transparentPaletteIndex(struct Palette16 *palette, uint16_t colour, uint16_t transparent);
+static void printResults(struct Image *img, struct PaletteOptimisationResults results, uint16_t transparent, int tilesX, int tilesY, int tileSize);
+
 uint16_t rgb15(struct Colour c)
 {
     return ((c.r >> 3) & 31) | (((c.g >> 3) & 31) << 5) | (((c.b >> 3) & 31) << 10);
@@ -36,9 +40,11 @@ uint16_t parseColour(const char *colourString)
     }
 
     struct Colour c = {
-        .r = (colourLong >> 8) & 255,
-        .g = (colourLong >> 4) & 255,
+        .r = (colourLong >> 16) & 255,
+        .g = (colourLong >> 8) & 255,
         .b = (colourLong >> 0) & 255};
+
+    printf("transparent colour: %02x%02x%02x\n", c.r, c.g, c.b);
 
     return rgb15(c);
 }
@@ -136,15 +142,136 @@ int main(int argc, char **argv)
     }
 
     struct PaletteOptimisationResults results = PaletteOptimiser_OptimisePalettes(optimiser, transparent);
-    printf("Needed %d palettes\n", results.nPalettes);
 
-    for (int i = 0; i < tilesX * tilesY; i++)
+    if (results.nPalettes == 0)
     {
-        printf("Tile %d needs palette %d\n", i, results.paletteAssignment[i]);
+        fprintf(stderr, "Failed to find a set of covering palettes");
+        statusCode = 1;
+        goto exit;
     }
+
+    printResults(img, results, transparent, tilesX, tilesY, tileSize);
 
 exit:
     Image_Free(img);
     PaletteOptimiser_Free(optimiser);
     return statusCode;
+}
+
+static void printResults(struct Image *img, struct PaletteOptimisationResults results, uint16_t transparent, int tilesX, int tilesY, int tileSize)
+{
+    fprintf(stdout, "#include <stdint.h>\n\n");
+    fprintf(stdout, "uint16_t paletteData[256] = {\n");
+
+    for (int i = 0; i < results.nPalettes; i++)
+    {
+        struct Palette16 *palette = results.palettes[i];
+        printPalette(palette, transparent);
+    }
+
+    for (int i = results.nPalettes; i < 16; i++)
+    {
+        fprintf(stdout, "    ");
+        for (int j = 0; j < 16; j++)
+        {
+            fprintf(stdout, "0x0000, ");
+        }
+        fprintf(stdout, "\n");
+    }
+
+    fprintf(stdout, "};\n\n");
+
+    fprintf(stdout, "uint32_t tileData = {\n");
+    int tileDataLength = 0;
+
+    for (int y = 0; y < tilesY; y++)
+    {
+        for (int x = 0; x < tilesX; x++)
+        {
+            int paletteIndex = results.paletteAssignment[y * tilesX + x];
+            struct Palette16 *palette = results.palettes[paletteIndex];
+
+            fprintf(stdout, "    /* %d, %d (palette index %d) */\n", x, y, paletteIndex);
+
+            for (int innerY = 0; innerY < tileSize / 8; innerY++)
+            {
+                fprintf(stdout, "    ");
+
+                for (int innerX = 0; innerX < tileSize / 8; innerX++)
+                {
+                    for (int j = innerY; j < innerY + 8; j++)
+                    {
+                        fprintf(stdout, "0x");
+
+                        for (int i = innerX; i < innerX + 8; i++)
+                        {
+                            struct Colour c = Image_Colour(img, x * tileSize + i, y * tileSize + j);
+                            uint16_t colour = rgb15(c);
+
+                            int colourIndex = transparentPaletteIndex(palette, colour, transparent);
+                            fprintf(stdout, "%x", colourIndex);
+                        }
+
+                        fprintf(stdout, ", ");
+                        tileDataLength += 4;
+                    }
+                }
+
+                fprintf(stdout, "\n");
+            }
+        }
+    }
+
+    fprintf(stdout, "};\n\n");
+    fprintf(stdout, "int tileDataLength = %d;\n\n", tileDataLength);
+
+    fprintf(stdout, "int tilePaletteNumber = {");
+    for (int i = 0; i < tilesX * tilesY; i++)
+    {
+        if (i % 16 == 0)
+        {
+            fprintf(stdout, "\n   ");
+        }
+
+        fprintf(stdout, "%d, ", results.paletteAssignment[i]);
+    }
+    fprintf(stdout, "\n};\n");
+}
+
+static int transparentPaletteIndex(struct Palette16 *palette, uint16_t colour, uint16_t transparent)
+{
+    if (colour == transparent)
+    {
+        return 0;
+    }
+
+    return Palette16_GetIndex(palette, colour) + 1;
+}
+
+static void printPalette(struct Palette16 *palette, uint16_t transparent)
+{
+    fprintf(stdout, "    ");
+
+    if (transparent != INVALID_COLOUR)
+    {
+        fprintf(stdout, "0x%04x, ", transparent);
+    }
+
+    for (int j = 0; j < Palette16_GetNumColours(palette); j++)
+    {
+        uint16_t colour = Palette16_GetColour(palette, j);
+        if (colour == transparent)
+        {
+            continue;
+        }
+
+        fprintf(stdout, "0x%04x, ", colour);
+    }
+
+    for (int j = Palette16_GetNumColours(palette); j < PALETTE16_NUM_COLOURS; j++)
+    {
+        fprintf(stdout, "0x0000, ");
+    }
+
+    fprintf(stdout, "\n");
 }
