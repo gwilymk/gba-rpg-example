@@ -121,6 +121,6 @@ clean :
 	@rm -fv $(TARGET).gba $(TARGET).elf $(TARGET).dump
 	@rm -fv $(OBJS) $(DEPS)
 	@rm -fv images/*.c
-	@rm -fv $(PNGTOGBA) $(PNGTOGBA_OBJS) $(PNGTOGBA_DEPS) $(PNGTOGBA)
+	@rm -fv $(PNGTOGBA) $(PNGTOGBA_OBJS) $(PNGTOGBA_DEPS)
 
 -include $(DEPS) $(PNGTOGBA_DEPS)
