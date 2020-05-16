@@ -1,13 +1,15 @@
 #pragma once
 
+#include <stdint.h>
+
 struct Image;
 
 struct Colour
 {
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
-    unsigned char a;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
 };
 
 struct Image *Image_New(const char *filename);
@@ -18,3 +20,8 @@ int Image_Width(struct Image *img);
 int Image_Height(struct Image *img);
 
 struct Colour Image_Colour(struct Image *img, int x, int y);
+
+inline uint16_t rgb15(struct Colour c)
+{
+    return ((c.r >> 3) & 31) | (((c.g >> 3) & 31) << 5) | (((c.b >> 3) & 31) << 10);
+}

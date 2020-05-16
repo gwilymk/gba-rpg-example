@@ -1,85 +1,37 @@
 #include "Image.h"
 #include "PaletteOptimiser.h"
+#include "ConfigReader.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <limits.h>
 #include <assert.h>
 
 static void printPalette(FILE *file, struct Palette16 *palette, uint16_t transparent);
 static int transparentPaletteIndex(struct Palette16 *palette, uint16_t colour, uint16_t transparent);
-static void printResults(FILE *file, struct Image *img, struct PaletteOptimisationResults results, uint16_t transparent, int tilesX, int tilesY, int tileSize);
+static void printResults(FILE *file, struct Image *img, struct PaletteOptimisationResults results, const char *prefix, uint16_t transparent, int tilesX, int tilesY, int tileSize);
 static struct PaletteOptimiser *optimiserForImage(struct Image *img, int tileSize, int tilesX, int tilesY);
-
-uint16_t rgb15(struct Colour c)
-{
-    return ((c.r >> 3) & 31) | (((c.g >> 3) & 31) << 5) | (((c.b >> 3) & 31) << 10);
-}
-
-// Returns -1 on an invalid number
-static int parseTileSize(const char *tileSizeString)
-{
-    char *end;
-    long int tileSize = strtol(tileSizeString, &end, 10);
-    if (*end != '\0' || tileSize <= 0 || tileSize >= INT32_MAX)
-    {
-        return -1;
-    }
-
-    return tileSize;
-}
-
-// Returns INVALID_COLOUR if colour is invalid
-uint16_t parseColour(const char *colourString)
-{
-    char *end;
-    long int colourLong = strtol(colourString, &end, 16);
-    if (*end != '\0' || colourLong < 0)
-    {
-        return INVALID_COLOUR;
-    }
-
-    struct Colour c = {
-        .r = (colourLong >> 16) & 255,
-        .g = (colourLong >> 8) & 255,
-        .b = (colourLong >> 0) & 255};
-
-    printf("transparent colour: %02x%02x%02x\n", c.r, c.g, c.b);
-
-    return rgb15(c);
-}
 
 int main(int argc, char **argv)
 {
     int statusCode = 0;
-    if (argc <= 2 || argc >= 5)
+    if (argc != 2)
     {
-        fprintf(stderr, "Expected 2 or 3 arguments, usage:\n%s pngfile tilesize transparentColour\n", argv[0]);
+        fprintf(stderr, "Expected exactly 1 argument, usage:\n%s pngfile configFile.h\n", argv[0]);
         return 1;
     }
 
-    int tileSize = parseTileSize(argv[2]);
-    if (tileSize == -1 || tileSize % 8 != 0)
+    bool ok;
+    struct Config config = ConfigReader_ReadConfig(argv[1], &ok);
+    if (!ok)
     {
-        fprintf(stderr, "Invalid tile size %s\n", argv[2]);
+        fprintf(stderr, "\nFailed to read config\n");
         return 1;
     }
 
-    uint16_t transparent = INVALID_COLOUR;
-    if (argc == 4)
-    {
-        transparent = parseColour(argv[3]);
-        if (transparent == INVALID_COLOUR)
-        {
-            fprintf(stderr, "Invalid transparent colour %s\n", argv[3]);
-            return 1;
-        }
-    }
-
-    char *filename = argv[1];
-    struct Image *img = Image_New(filename);
     struct PaletteOptimiser *optimiser = NULL;
+
+    struct Image *img = Image_New(config.imgFileName);
 
     char *error = NULL;
     if (img == NULL || (error = Image_Error(img)) != NULL)
@@ -96,6 +48,8 @@ int main(int argc, char **argv)
     int width = Image_Width(img);
     int height = Image_Height(img);
 
+    int tileSize = config.tileSize;
+
     if (width % tileSize != 0 || height % tileSize != 0)
     {
         fprintf(stderr, "Image width or height not a multiple of the tile size\n");
@@ -106,17 +60,30 @@ int main(int argc, char **argv)
     int tilesX = width / tileSize;
     int tilesY = height / tileSize;
 
+    uint16_t transparent = config.transparentColour;
+
     optimiser = optimiserForImage(img, tileSize, tilesX, tilesY);
     struct PaletteOptimisationResults results = PaletteOptimiser_OptimisePalettes(optimiser, transparent);
 
     if (results.nPalettes == 0)
     {
-        fprintf(stderr, "Failed to find a set of covering palettes");
+        fprintf(stderr, "Failed to find a set of covering palettes\n");
         statusCode = 1;
         goto exit;
     }
 
-    printResults(stdout, img, results, transparent, tilesX, tilesY, tileSize);
+    FILE *output = fopen(config.outFileName, "w");
+
+    if (output == NULL)
+    {
+        fprintf(stderr, "Failed to open %s for writing\n", config.outFileName);
+        statusCode = 1;
+        goto exit;
+    }
+
+    printResults(output, img, results, config.prefix, transparent, tilesX, tilesY, tileSize);
+
+    fclose(output);
 
 exit:
     Image_Free(img);
@@ -163,10 +130,10 @@ static struct PaletteOptimiser *optimiserForImage(struct Image *img, int tileSiz
     return optimiser;
 }
 
-static void printResults(FILE *file, struct Image *img, struct PaletteOptimisationResults results, uint16_t transparent, int tilesX, int tilesY, int tileSize)
+static void printResults(FILE *file, struct Image *img, struct PaletteOptimisationResults results, const char *prefix, uint16_t transparent, int tilesX, int tilesY, int tileSize)
 {
     fprintf(file, "#include <stdint.h>\n\n");
-    fprintf(file, "uint16_t paletteData[256] = {\n");
+    fprintf(file, "uint16_t %sPaletteData[256] = {\n", prefix);
 
     for (int i = 0; i < results.nPalettes; i++)
     {
@@ -186,7 +153,7 @@ static void printResults(FILE *file, struct Image *img, struct PaletteOptimisati
 
     fprintf(file, "};\n\n");
 
-    fprintf(file, "uint32_t tileData = {\n");
+    fprintf(file, "uint32_t %sTileData[] = {\n", prefix);
     int tileDataLength = 0;
 
     for (int y = 0; y < tilesY; y++)
@@ -228,9 +195,9 @@ static void printResults(FILE *file, struct Image *img, struct PaletteOptimisati
     }
 
     fprintf(file, "};\n\n");
-    fprintf(file, "int tileDataLength = %d;\n\n", tileDataLength);
+    fprintf(file, "int %sTileDataLength = %d;\n\n", prefix, tileDataLength);
 
-    fprintf(file, "int tilePaletteNumber = {");
+    fprintf(file, "int %sTilePaletteNumber[] = {", prefix);
     for (int i = 0; i < tilesX * tilesY; i++)
     {
         if (i % 16 == 0)
