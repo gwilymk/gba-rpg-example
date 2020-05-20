@@ -1,11 +1,11 @@
 #include <lostgba/Background.h>
 #include "LostGbaInternal.h"
 
-u16 *Background_ControlRegisterBaseAddr = (u16 *)0x04000008;
+vu16 *Background_ControlRegisterBaseAddr = (vu16 *)0x04000008;
 
 static void Background_setBits(enum BackgroundNumber backgroundNumber, u16 value, u16 length, u16 shift)
 {
-    LostGBA_SetBits16(&Background_ControlRegisterBaseAddr[backgroundNumber], value, length, shift);
+    LostGBA_SetVBits16(&Background_ControlRegisterBaseAddr[backgroundNumber], value, length, shift);
 }
 
 void Background_SetPriority(enum BackgroundNumber backgroundNumber, int priority)
@@ -58,7 +58,7 @@ static int Background_screenBlockOffset(enum BackgroundSize backgroundSize, int 
     }
 }
 
-#define VRAM_BASE ((u16 *)0x06000000)
+#define VRAM_BASE ((vu16 *)0x06000000)
 #define SCREEN_BLOCK_LENGTH 1024
 
 void LOSTGBA_UNSAFE(Background_SetTile)(int screenBaseBlock, enum BackgroundSize backgroundSize, int x, int y, int tileId, bool hflip, bool vflip, int paletteBank)
@@ -71,8 +71,8 @@ void LOSTGBA_UNSAFE(Background_SetTile)(int screenBaseBlock, enum BackgroundSize
     *(VRAM_BASE + (SCREEN_BLOCK_LENGTH * (screenBaseBlock + screenBlockOffset)) + screenBlockStep) = screenEntry;
 }
 
-u16 *Background_HorizontalOffsetBaseAddr = (u16 *)0x04000010;
-u16 *Background_VerticalOffsetBaseAddr = (u16 *)0x4000012;
+vu16 *Background_HorizontalOffsetBaseAddr = (vu16 *)0x04000010;
+vu16 *Background_VerticalOffsetBaseAddr = (vu16 *)0x4000012;
 
 void Background_SetHorizontalOffset(enum BackgroundNumber backgroundNumber, int hOffset)
 {
