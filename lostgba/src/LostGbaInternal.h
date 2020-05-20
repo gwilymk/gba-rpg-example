@@ -23,6 +23,13 @@
 void LostGBA_SetBits16(u16 *target, u16 value, u16 length, u16 shift);
 
 /**
+ * @brief Utility function to set bits at a cirtain location
+ * 
+ * Same as LostGBA_SetBits16 except that it has a volatile target
+ */
+void LostGBA_SetVBits16(vu16 *target, u16 value, u16 length, u16 shift);
+
+/**
  * @brief Returns a number with the first n bits set to 1
  */
 inline u16 LostGBA_AllOnes16(int length)
