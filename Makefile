@@ -36,7 +36,7 @@ HOST_LDFLAGS := $(HOSTCC_FLAGS) -lz -lm
 ARCH    := -mthumb-interwork -mthumb
 SPECS   := -specs=gba.specs
 
-INCLUDES := -I. -Ilostgba/include
+INCLUDES := -I. -Ilostgba/include -Iinclude
 CFLAGS  := $(ARCH) -O2 -flto -g $(CFLAGS_COMMON) $(INCLUDES)
 
 PNGTOGBA := lostgba/tools/pngtogba/pngtogba

@@ -11,8 +11,8 @@
                 "-fno-implicit-function-declaration"
             ],
             "includePath": [
-                "${workspaceFolder}/images",
-                "/home/gwilym/Install/libgba/include",
+                "${workspaceFolder}",
+                "${workspaceFolder}/lostgba/include",
                 "${workspaceFolder}/include"
             ]
         }
