@@ -25,9 +25,9 @@ void Graphics_SetVBlankInterrupt(bool enabled)
     *Graphics_displayStatusRegister |= enabled << 3;
 }
 
-static u16 *Graphics_blendingModeRegister = (u16 *)0x04000050;
+static vu16 *Graphics_blendingModeRegister = (vu16 *)0x04000050;
 
 void Graphics_SetBlendingMode(enum GraphicsBlendingMode blendingMode)
 {
-    LostGBA_SetBits16(Graphics_blendingModeRegister, blendingMode, 2, 6);
+    LostGBA_SetVBits16(Graphics_blendingModeRegister, blendingMode, 2, 6);
 }
