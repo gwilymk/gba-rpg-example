@@ -14,8 +14,9 @@ TILEMAP_OBJS := $(patsubst %.csv,%.o,$(TILEMAPS))
 TILEMAP_HEADERS := $(patsubst %.csv,%.h,$(TILEMAPS))
 
 CFILES  := $(shell find src -type f -name '*.c') $(shell find lostgba/src -type f -name '*.c')
+ASMFILES := $(shell find src -type f -name '*.s') $(shell find lostgba/src -type f -name '*.s')
 HFILES  := $(shell find -name '*.h')
-OBJS    := $(patsubst %.c,%.o,$(CFILES)) $(IMAGE_OBJS) $(TILEMAP_OBJS)
+OBJS    := $(patsubst %.c,%.o,$(CFILES)) $(patsubst %.s,%.o,$(ASMFILES)) $(IMAGE_OBJS) $(TILEMAP_OBJS)
 DEPS    := $(patsubst %.c,%.d,$(CFILES))
 
 # --- Build defines ---------------------------------------------------

@@ -12,20 +12,25 @@ void LostGBA_SetVBits16(vu16 *target, u16 value, u16 length, u16 shift)
     (*target) = (*target & ~(mask << shift)) | ((value & mask) << shift);
 }
 
+ARM_TARGET
+void LostGBA_VMemCpy32_Fast(volatile void *target, const void *src, int words);
+
+ARM_TARGET
+void LostGBA_VMemCpy16(volatile void *target, const void *src, int length);
+
 void LostGBA_VMemCpy32(volatile void *target, const void *src, int length)
 {
-    // do I need to worry about memory aliasing here?
-    s32 *srcInts = (s32 *)src;
-    volatile s32 *targetInts = (volatile s32 *)target;
-    for (int i = 0; i < length / 4; i++)
+    if (length == 0)
     {
-        targetInts[i] = srcInts[i];
+        return; // nothing to do
     }
 
-    s8 *srcChars = (s8 *)src;
-    volatile s8 *targetChars = (volatile s8 *)target;
-    for (int i = length % 4 - 1; i >= 0; i--)
+    if (length % 4 == 0)
     {
-        targetChars[length - i] = srcChars[length - i];
+        // whole number of words long. So we can do lots at a time
+        LostGBA_VMemCpy32_Fast(target, src, length / 4);
+        return;
     }
+
+    LostGBA_VMemCpy16(target, src, length);
 }
