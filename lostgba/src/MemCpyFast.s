@@ -35,12 +35,12 @@ LostGBA_VMemCpy32_Fast:
     @ instruction.
 
 .loopmemcpy32_slow:
-    @ for simplicity of writing the code here, we use the `cs` version of the ldmia and stmia instructions
+    @ for simplicity of writing the code here, we use the `hi` version of the ldmia and stmia instructions
     @ They won't execute if the subtraction goes negative
     subs r2, r2, #1 @ subtract 1 from r2
-    ldmhiia r1!, {r4} @ copy *r1 to r4 and increment r1 by 4
-    stmhiia r0!, {r4} @ store r4 to *r0 and increment r0 by 4
-    bhi .loopmemcpy32_slow
+    ldmhiia r1!, {r4} @ copy *r1 to r4 and increment r1 by 4 but only if r2 > 0
+    stmhiia r0!, {r4} @ store r4 to *r0 and increment r0 by 4 but only if r2 > 0
+    bhi .loopmemcpy32_slow @ loop only if r2 > 0
 
     pop {r4-r11} @ return scratch registers to previous state
     bx lr @ return
