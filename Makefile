@@ -13,7 +13,7 @@ TILEMAPS := $(shell find tilemaps -name '*.csv')
 TILEMAP_OBJS := $(patsubst %.csv,%.o,$(TILEMAPS))
 TILEMAP_HEADERS := $(patsubst %.csv,%.h,$(TILEMAPS))
 
-CFILES  := $(shell find . -path ./tools -prune -o -type f -name '*.c' -print)
+CFILES  := $(shell find src -type f -name '*.c') $(shell find lostgba/src -type f -name '*.c')
 HFILES  := $(shell find -name '*.h')
 OBJS    := $(patsubst %.c,%.o,$(CFILES)) $(IMAGE_OBJS) $(TILEMAP_OBJS)
 DEPS    := $(patsubst %.c,%.d,$(CFILES))
@@ -36,21 +36,22 @@ HOST_LDFLAGS := $(HOSTCC_FLAGS) -lz -lm
 ARCH    := -mthumb-interwork -mthumb
 SPECS   := -specs=gba.specs
 
-CFLAGS  := $(ARCH) -O2 -flto -g $(CFLAGS_COMMON) -Iinclude
+INCLUDES := -I. -Ilostgba/include
+CFLAGS  := $(ARCH) -O2 -flto -g $(CFLAGS_COMMON) $(INCLUDES)
 
-PNGTOGBA := tools/pngtogba/pngtogba
+PNGTOGBA := lostgba/tools/pngtogba/pngtogba
 
 LDFLAGS := $(ARCH) $(SPECS) -flto -g -O2
 
 default: build
 
-tools/%.o : tools/%.c Makefile
+lostgba/tools/%.o : lostgba/tools/%.c Makefile
 	@echo [HOSTCC] $<
 	@$(HOSTCC) $(HOST_CFLAGS) -MMD -MP -c $< -o $@
 
 #### PNGTOGBA ####
 
-PNGTOGBA_CFILES := $(shell find ./tools/pngtogba -name '*.c')
+PNGTOGBA_CFILES := $(shell find ./lostgba/tools/pngtogba -name '*.c')
 PNGTOGBA_DEPS := $(patsubst %.c,%.d,$(PNGTOGBA_CFILES))
 PNGTOGBA_OBJS := $(patsubst %.c,%.o,$(PNGTOGBA_CFILES))
 
