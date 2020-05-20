@@ -255,7 +255,7 @@ int main(void)
                     currentFrame = DOWN_IDLE - 1;
                 }
 
-                if (frameSkip == 0 && randomNumber() % 120 == 0)
+                if (frameSkip == 0 && randomNumber() % 128 == 0)
                 {
                     currentFrame = DOWN_BLINK - 1;
                 }
