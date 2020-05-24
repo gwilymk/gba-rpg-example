@@ -1,8 +1,7 @@
 #include <lostgba/test/Test.h>
 
-#include <lostgba/Graphics.h>
-#include <lostgba/TileMap.h>
-#include <lostgba/Background.h>
+#include <lostgba/Interrupt.h>
+#include <lostgba/SystemCalls.h>
 
 #include <string.h>
 
@@ -81,43 +80,11 @@ void LostGBA_TestAssertFailed(const char *testName, const char *fileName, int li
     }
 }
 
-static void setupBackground(void)
-{
-#define RED 0x001F
-#define GREEN 0x03E0
-    u16 paletteData[256] = {
-        RED, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        GREEN, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0};
-    TileMap_CopyToBackgroundPalette(paletteData);
-
-    u32 tileData[32] = {0};
-    TileMap_CopyToBackgroundTiles(0, &tileData[0], sizeof(tileData));
-
-    Background_SetColourMode(BackgroundNumber_0, BackgroundColourMode_4PP);
-    Background_SetScreenBaseBlock(BackgroundNumber_0, 20);
-
-    Background_SetSize(BackgroundNumber_0, BackgroundSize_32x32);
-    Background_SetTileBackgroundNumber(BackgroundNumber_0, 0);
-
-    for (int y = 0; y < 32; y++)
-    {
-        for (int x = 0; x < 32; x++)
-        {
-            Background_SetTile(20, BackgroundSize_32x32, x, y, 0, false, false, 1);
-        }
-    }
-}
-
 int main(void)
 {
-    struct GraphicsSettings settings = {
-        .graphicsMode = GraphicsMode_0,
-        .enableBG0 = true,
-    };
-    Graphics_SetMode(settings);
-
-    setupBackground();
+    Interrupt_Init();
+    Interrupt_EnableType(InterruptType_VBlank);
+    Interrupt_Enable();
 
     for (int i = 0; i < NumRegisteredTests; i++)
     {
@@ -127,5 +94,6 @@ int main(void)
     agbPrint("All tests passed");
     while (1)
     {
+        SystemCall_WaitForVBlank();
     }
 }
