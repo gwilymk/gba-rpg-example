@@ -1,7 +1,6 @@
 @ void LostGBA_VMemCpy32_Fast(volatile void *target, const void *src, int words)
 @
 @ Based very heavily on the implementation of memcpy32 from libtonc
-@ Note that words MUST be > 0
 @
 @ Arguments:
 @ r0, r1 = target, src
@@ -16,9 +15,11 @@
 .arm
 .align 2
 .global LostGBA_VMemCpy32_Fast
+.type LostGBA_VMemCpy32_Fast STT_FUNC
 LostGBA_VMemCpy32_Fast:
-    lsr r3, r2, #3 @ r3 = r2 >> 3 (r3 = r2 / 8)
+    lsrs r3, r2, #3 @ r3 = r2 >> 3 (r3 = r2 / 8). Set flag register on result (used below)
     and r2, r2, #7 @ r2 = r2 & 0b111 (r2 = r2 % 8)
+    beq .loopmemcpy32_slow @ if result above is = 0, then jump straight to the slow version
 
     push {r4-r11} @ save the preserved registers according to the calling convention
 
@@ -27,22 +28,23 @@ LostGBA_VMemCpy32_Fast:
     stmia r0!, {r4-r11} @ copies 8 32-bit words at a time :D
 
     subs r3, r3, #1 @ subtract 1 from r3
-    bhi .loopmemcpy32 @ if r3 > 0, jump to loopmemcpy32
+    bne .loopmemcpy32 @ if r3 > 0, jump to loopmemcpy32
 
     @ we now have to copy r2 words. I'm not sure if it is quicker to write all the
     @ individual ldmia instructions, or to just do a basic loop. I've gone with a
     @ basic loop for now, but in future could consider trying to do all of these in 1
     @ instruction.
 
+    pop {r4-r11} @ return scratch registers to previous state
+
 .loopmemcpy32_slow:
     @ for simplicity of writing the code here, we use the `hi` version of the ldmia and stmia instructions
     @ They won't execute if the subtraction goes negative
     subs r2, r2, #1 @ subtract 1 from r2
-    ldmhiia r1!, {r4} @ copy *r1 to r4 and increment r1 by 4 but only if r2 > 0
-    stmhiia r0!, {r4} @ store r4 to *r0 and increment r0 by 4 but only if r2 > 0
-    bhi .loopmemcpy32_slow @ loop only if r2 > 0
+    ldmplia r1!, {r3} @ copy *r1 to r3 and increment r1 by 4 but only if r2 > 0 (i.e. the subtraction resulted non-negative)
+    stmplia r0!, {r3} @ store r3 to *r0 and increment r0 by 4 but only if r2 > 0
+    bpl .loopmemcpy32_slow @ loop only if r2 > 0
 
-    pop {r4-r11} @ return scratch registers to previous state
     bx lr @ return
 
 
@@ -65,6 +67,7 @@ LostGBA_VMemCpy32_Fast:
 .arm
 .align 2
 .global LostGBA_VMemCpy16
+.type LostGBA_VMemCpy16 STT_FUNC
 LostGBA_VMemCpy16:
     @ we need to work out how many words we can copy using the fast version
     and r4, r2, #2 @ r4 = r2 & 0b10 the number of extra bytes we need to copy at the end (same as %4 but always even)

@@ -39,7 +39,7 @@ void LostGBA_VMemCpy32(volatile void *target, const void *src, int length)
 
 #include <lostgba/test/Test.h>
 
-LostGBA_Test("MemCpy copies all requested memory")
+LostGBA_Test("MemCpy copies all requested memory if aligned and size divides 32-bits * 32")
 {
     u8 src[256];
     u8 target[256] = {0};
@@ -59,6 +59,29 @@ LostGBA_Test("MemCpy copies all requested memory")
     for (int i = 128; i < 256; i++)
     {
         LostGBA_Assert(target[i] == 0, "Not too many bytes were copied");
+    }
+}
+
+LostGBA_Test("MemCpy copies all requested memory if size is 3 words")
+{
+    u8 src[256];
+    u8 target[256] = {0};
+
+    for (int i = 0; i < 12; i++)
+    {
+        src[i] = i;
+    }
+
+    LostGBA_VMemCpy32(target, src, 12);
+
+    for (int i = 0; i < 12; i++)
+    {
+        LostGBA_Assert(target[i] == i, "Correct bytes were not copied");
+    }
+
+    for (int i = 13; i < 256; i++)
+    {
+        LostGBA_Assert(target[i] == 0, "Too many bytes were copied");
     }
 }
 
