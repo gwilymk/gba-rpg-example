@@ -10,7 +10,9 @@
 @ Usage
 @ r3 = length / 8 to get the number of 8 sections of words to move
 @ r2 -> length % 8 to get the residual words to copy
-@ r4 - r11 are used as scratch registers
+@ r5 - r12 are used as scratch registers
+@
+@ preserves r4
 .section .iwram, "ax", %progbits @ "ax" = allocatable and executable, %progbits = contains data
 .arm
 .align 2
@@ -21,11 +23,11 @@ LostGBA_VMemCpy32_Fast:
     and r2, r2, #7 @ r2 = r2 & 0b111 (r2 = r2 % 8)
     beq .loopmemcpy32_slow @ if result above is = 0, then jump straight to the slow version
 
-    push {r4-r11} @ save the preserved registers according to the calling convention
+    push {r5-r11} @ save the preserved registers according to the calling convention
 
 .loopmemcpy32:
-    ldmia r1!, {r4-r11} @ the clever bit. Copies memory to registers and stores. Increments r1 afterwards
-    stmia r0!, {r4-r11} @ copies 8 32-bit words at a time :D
+    ldmia r1!, {r5-r12} @ the clever bit. Copies memory to registers and stores. Increments r1 afterwards
+    stmia r0!, {r5-r12} @ copies 8 32-bit words at a time :D
 
     subs r3, r3, #1 @ subtract 1 from r3
     bne .loopmemcpy32 @ if r3 > 0, jump to loopmemcpy32
@@ -35,7 +37,7 @@ LostGBA_VMemCpy32_Fast:
     @ basic loop for now, but in future could consider trying to do all of these in 1
     @ instruction.
 
-    pop {r4-r11} @ return scratch registers to previous state
+    pop {r5-r11} @ return scratch registers to previous state
 
 .loopmemcpy32_slow:
     @ for simplicity of writing the code here, we use the `hi` version of the ldmia and stmia instructions
@@ -69,16 +71,19 @@ LostGBA_VMemCpy32_Fast:
 .global LostGBA_VMemCpy16
 .type LostGBA_VMemCpy16 STT_FUNC
 LostGBA_VMemCpy16:
+    push {r4, lr} @ save return value on the stack
+
     @ we need to work out how many words we can copy using the fast version
     and r4, r2, #2 @ r4 = r2 & 0b10 the number of extra bytes we need to copy at the end (same as %4 but always even)
     lsr r2, r2, #2 @ r2 = r2 >> 2 (r2 = r2 / 4) so r2 is the number of words we need to copy
 
     @ everything is set up to call the fast version
-    bl LostGBA_VMemCpy32_Fast
+    bl LostGBA_VMemCpy32_Fast @ don't need to save r4 because that is preserved
 
     @ now we only need to do the last half word if necessary
     cmp r4, #0 @ compare r4 with 0
-    ldrneh r3, [r1, r4] @ r3 = r1 with r4 bytes offset, only if r4 is not 0
-    strneh r3, [r0, r4] @ r0 with r4 bytes offset = r3 only if r4 is not 0
+    ldrneh r3, [r1, #0] @ r3 = r1 (half word), only if r4 is not 0
+    strneh r3, [r0, #0] @ r0 = r3 (half word), only if r4 is not 0
     
+    pop {r4, lr}
     bx lr
