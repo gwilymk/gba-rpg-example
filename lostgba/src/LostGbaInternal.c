@@ -81,4 +81,9 @@ LostGBA_Test("MemCpy copies all requested memory if size is 3.5 words")
     MemoryTest(0, 0, 14);
 }
 
+LostGBA_Test("MemCpy copies all requested memory if size is 0.5 words")
+{
+    MemoryTest(0, 0, 2);
+}
+
 #endif
