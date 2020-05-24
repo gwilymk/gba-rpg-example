@@ -10,6 +10,10 @@
         "docs/": true,
         "tilemaps/*.c": true,
         "tilemaps/*.h": true,
-        "**/*.to": true
+        "**/*.to": true,
+        "**/*.td": true
+    },
+    "files.associations": {
+        "system_error": "cpp"
     }
 }

@@ -19,9 +19,9 @@ ASMFILES := $(shell find src -type f -name '*.s') $(shell find lostgba/src -type
 HFILES  := $(shell find -name '*.h')
 MAINOBJ := src/main.o
 OBJS    := $(patsubst %.c,%.o,$(CFILES)) $(patsubst %.s,%.o,$(ASMFILES)) $(IMAGE_OBJS) $(TILEMAP_OBJS)
-DEPS    := $(patsubst %.c,%.d,$(CFILES)) src/main.d
 TESTCFILES := $(CFILES) $(shell find test -type f -name '*.c') $(shell find lostgba/test -type f -name '*.c')
 TESTOBJS := $(patsubst %.c,%.to,$(TESTCFILES)) $(patsubst %.s,%.to,$(ASMFILES)) $(IMAGE_OBJS) $(TILEMAP_OBJS)
+DEPS    := $(patsubst %.c,%.d,$(CFILES)) $(patsubst %.c,%.td,$(TESTCFILES)) src/main.d
 
 # --- Build defines ---------------------------------------------------
 
@@ -106,7 +106,7 @@ dump-test: $(TARGET)-test.dump
 
 %.to : %.c Makefile
 	@echo [TESTCC] $<
-	@$(CC) -c $< $(CFLAGS) -o $@ -MMD -MP -DLOSTGBA_TEST
+	@$(CC) -c $< $(CFLAGS) -o $@ -MMD -MP -MF $*.td -DLOSTGBA_TEST
 
 %.to : %.s Makefile
 	@echo [TESTASM] $<

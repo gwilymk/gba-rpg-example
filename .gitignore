@@ -9,3 +9,4 @@ docs/
 tilemaps/*.c
 tilemaps/*.h
 *.to
+*.td
