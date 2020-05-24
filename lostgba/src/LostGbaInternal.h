@@ -37,7 +37,4 @@ void LostGBA_VMemCpy32(volatile void *target, const void *src, int length);
 /**
  * @brief Returns a number with the first n bits set to 1
  */
-inline u16 LostGBA_AllOnes16(int length)
-{
-    return (1 << length) - 1;
-}
+#define LostGBA_AllOnes16(length) ((1 << length) - 1)

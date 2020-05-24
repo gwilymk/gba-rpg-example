@@ -8,3 +8,4 @@ docs/
 *.dump
 tilemaps/*.c
 tilemaps/*.h
+*.to

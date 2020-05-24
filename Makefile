@@ -13,11 +13,15 @@ TILEMAPS := $(shell find tilemaps -name '*.csv')
 TILEMAP_OBJS := $(patsubst %.csv,%.o,$(TILEMAPS))
 TILEMAP_HEADERS := $(patsubst %.csv,%.h,$(TILEMAPS))
 
-CFILES  := $(shell find src -type f -name '*.c') $(shell find lostgba/src -type f -name '*.c')
+CMAIN := src/main.c
+CFILES  := $(shell find src -type f -name '*.c' -not -name 'main.c') $(shell find lostgba/src -type f -name '*.c')
 ASMFILES := $(shell find src -type f -name '*.s') $(shell find lostgba/src -type f -name '*.s')
 HFILES  := $(shell find -name '*.h')
+MAINOBJ := src/main.o
 OBJS    := $(patsubst %.c,%.o,$(CFILES)) $(patsubst %.s,%.o,$(ASMFILES)) $(IMAGE_OBJS) $(TILEMAP_OBJS)
-DEPS    := $(patsubst %.c,%.d,$(CFILES))
+DEPS    := $(patsubst %.c,%.d,$(CFILES)) src/main.d
+TESTCFILES := $(CFILES) $(shell find test -type f -name '*.c') $(shell find lostgba/test -type f -name '*.c')
+TESTOBJS := $(patsubst %.c,%.to,$(TESTCFILES)) $(patsubst %.s,%.to,$(ASMFILES)) $(IMAGE_OBJS) $(TILEMAP_OBJS)
 
 # --- Build defines ---------------------------------------------------
 
@@ -32,17 +36,18 @@ HOSTCC  := gcc
 HOSTLD  := $(HOSTCC)
 
 HOST_CFLAGS := $(CFLAGS_COMMON) -O3 -flto -g
-HOST_LDFLAGS := $(HOSTCC_FLAGS) -lz -lm
+HOST_LDFLAGS := $(HOST_CFLAGS) -lz -lm
 
 ARCH    := -mthumb-interwork -mthumb
 SPECS   := -specs=gba.specs
 
 INCLUDES := -I. -Ilostgba/include -Iinclude
-CFLAGS  := $(ARCH) -O2 -flto -g $(CFLAGS_COMMON) $(INCLUDES)
+OPTFLAGS := -O2 -flto
+CFLAGS  := $(ARCH) -g $(CFLAGS_COMMON) $(INCLUDES)
 
 PNGTOGBA := lostgba/tools/pngtogba/pngtogba
 
-LDFLAGS := $(ARCH) $(SPECS) -flto -g -O2
+LDFLAGS := $(ARCH) $(SPECS) -g
 
 default: build
 
@@ -62,12 +67,15 @@ $(PNGTOGBA): $(PNGTOGBA_OBJS)
 
 #### END PNGTOGBA ####
 
-.PHONY : build clean default docs dump gdb
+.PHONY : build test clean default docs dump gdb gdb-test dump dump-test
 .SUFFIXES:
-.SUFFIXES: .c .o .s .h .png
+.SUFFIXES: .c .o .to .s .h .png .dump .gba .elf
 
 gdb: $(TARGET).elf
 	$(PREFIX)gdb $(TARGET).elf
+
+gdb-test: $(TARGET)-test.elf
+	$(PREFIX)gdb $(TARGET)-test.elf
 
 docs: docs/html/index.html
 
@@ -77,8 +85,10 @@ docs/html/index.html: Makefile Doxyfile $(CFILES) $(HFILES)
 
 dump: $(TARGET).dump
 
-$(TARGET).dump: $(TARGET).elf Makefile
-	@echo [OBJDUMP]
+dump-test: $(TARGET)-test.dump
+
+%.dump: %.elf Makefile
+	@echo [OBJDUMP] $<
 	@$(PREFIX)objdump -Sd $< > $@
 
 .SECONDARY: $(TILEMAP_HEADERS) $(IMAGE_CFILES)
@@ -88,11 +98,19 @@ $(TARGET).dump: $(TARGET).elf Makefile
 
 %.o : %.c Makefile $(TILEMAP_HEADERS)
 	@echo [CC] $<
-	@$(CC) -c $< $(CFLAGS) -o $@ -MMD -MP
+	@$(CC) -c $< $(CFLAGS) $(OPTFLAGS) -o $@ -MMD -MP
 
 %.o : %.s Makefile
 	@echo [ASM] $<
-	@$(CC) -c $< $(CFLAGS) -o $@
+	@$(CC) -c $< $(CFLAGS) $(OPTFLAGS) -o $@
+
+%.to : %.c Makefile
+	@echo [TESTCC] $<
+	@$(CC) -c $< $(CFLAGS) -o $@ -MMD -MP -DLOSTGBA_TEST
+
+%.to : %.s Makefile
+	@echo [TESTASM] $<
+	@$(CC) -c $< $(CFLAGS) -o $@ -DLOSTGBA_TEST
 
 %.png.c: %.png.h %.png $(PNGTOGBA) Makefile
 	@echo [PNGTOGBA] $<
@@ -106,13 +124,19 @@ tilemaps/%.c tilemaps/%.h : tilemaps/%.csv Makefile
 # --- Build -----------------------------------------------------------
 # Build process starts here!
 build: $(TARGET).gba
+test: $(TARGET)-test.gba
 
-$(TARGET).gba : $(TARGET).elf
-	@echo [OBJCOPY] $@
-	@$(OBJCOPY) -v -O binary $< $@ > /dev/null
+%.gba : %.elf
+	@echo [OBJCOPY] $<
+	@$(OBJCOPY) -O binary $< $@
+	@echo [GBAFIX] $@
 	@gbafix $@ > /dev/null
 
-$(TARGET).elf : $(OBJS)
+$(TARGET).elf : $(OBJS) $(MAINOBJ)
+	@echo [LD] $@
+	@$(LD) $^ $(LDFLAGS) $(OPTFLAGS) -o $@
+
+$(TARGET)-test.elf : $(TESTOBJS)
 	@echo [LD] $@
 	@$(LD) $^ $(LDFLAGS) -o $@
 
@@ -120,8 +144,8 @@ $(TARGET).elf : $(OBJS)
 
 .PHONY: clean
 clean :
-	@rm -fv $(TARGET).gba $(TARGET).elf $(TARGET).dump
-	@rm -fv $(OBJS) $(DEPS)
+	@rm -fv $(TARGET).gba $(TARGET).elf $(TARGET).dump $(TARGET)-test.gba $(TARGET)-test.elf $(TARGET)-test.dump
+	@rm -fv $(OBJS) $(MAINOBJ) $(DEPS) $(TESTOBJS)
 	@rm -fv images/*.c
 	@rm -fv $(PNGTOGBA) $(PNGTOGBA_OBJS) $(PNGTOGBA_DEPS)
 

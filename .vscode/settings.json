@@ -9,6 +9,7 @@
         "*.sav": true,
         "docs/": true,
         "tilemaps/*.c": true,
-        "tilemaps/*.h": true
+        "tilemaps/*.h": true,
+        "**/*.to": true
     }
 }

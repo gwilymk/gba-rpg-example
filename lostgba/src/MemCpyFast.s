@@ -12,7 +12,7 @@
 @ r3 = length / 8 to get the number of 8 sections of words to move
 @ r2 -> length % 8 to get the residual words to copy
 @ r4 - r11 are used as scratch registers
-.section .iwram
+.section .iwram, "ax", %progbits @ "ax" = allocatable and executable, %progbits = contains data
 .arm
 .align 2
 .global LostGBA_VMemCpy32_Fast
@@ -61,7 +61,7 @@ LostGBA_VMemCpy32_Fast:
 @ TODO: Handle the case where source and target aren't word aligned
 @ TODO: Handle the case where source xor target aren't word aligned
 @ TODO: Handle the case where bytes % 2 != 0
-.section .iwram
+.section .iwram, "ax", %progbits @ "ax" = allocatable and executable, %progbits = contains data
 .arm
 .align 2
 .global LostGBA_VMemCpy16
