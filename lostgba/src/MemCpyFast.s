@@ -59,6 +59,8 @@ LostGBA_VMemCpy32_Fast:
 @ r0, r1 = target, src
 @ r2 = length (in bytes)
 @
+@ Uses r12 for scratch values
+@
 @ Will use the fast 32-bit version above internally but this handles non-word length (but not unaligned memory)
 @ Both source and target must be word aligned, and length must be a multiple of 2 (half-word aligned)
 @
@@ -95,10 +97,24 @@ LostGBA_VMemCpy16:
     bx lr @ return
 
 .unalignedSourceOrTarget:
-    @ for now, we assume that either both the source and target are unaligned or neither are
-    ldrh r3, [r1] @ copy the address at r1 to r0
+    eor r12, r0, r1 @ r12 = r0 ^ r1
+    ands r12, r12, #2 @ r12 &= 0b10. Check unaligned
+    bne .unalignedSourceXorTarget @ if above != 0, then we need to do halfword copies
+
+    ldrh r3, [r1] @ copy the value of *r1 to *r0
     strh r3, [r0]
     add r0, r0, #2 @ we've already copied the first half-word now
     add r1, r1, #2
     sub r2, r2, #2 @ and so decrement the length
     b .alignedSourceAndTarget @ source and target are now aligned
+
+.unalignedSourceXorTarget:
+    @ this just has to be half word copies the whole way along unfortunately. Try not to do this IRL
+    @ the copying happens backwards
+    subs r2, r2, #2 @ r2 -= 2
+    ldrh r3, [r1, r2] @ *(r0 + r2) = *(r1 + r2)
+    strh r3, [r0, r2]
+    bne .unalignedSourceXorTarget @ loop if r2 is not zero
+
+    pop {r4, lr} @ restore scratch register and return pointer
+    bx lr @ return

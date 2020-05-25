@@ -89,4 +89,9 @@ LostGBA_Test("MemCpy copies all requested memory if both source and target are m
     MemoryTest(2, 2, 128);
 }
 
+LostGBA_Test("MemCpy copies all requested memory if both source but not target are mis-aligned")
+{
+    MemoryTest(2, 0, 128);
+}
+
 #endif
