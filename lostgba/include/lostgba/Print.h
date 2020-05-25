@@ -17,6 +17,8 @@
  * 
  * %% - prints a % sign
  * %s - prints a string
+ * %c - prints a char
+ * %d - prints an int
  */
 void LostGBA_PrintLn(const char *fmt, ...)
     __attribute__((format(printf, 1, 2)));

@@ -112,7 +112,7 @@ dump-test: $(TARGET)-test.dump
 
 %.to : %.c Makefile
 	@echo [TESTCC] $<
-	$(CC) -c $< $(CFLAGS) -o $@ -MMD -MP -MF $*.td -DLOSTGBA_TEST
+	@$(CC) -c $< $(CFLAGS) -o $@ -MMD -MP -MF $*.td -DLOSTGBA_TEST
 
 %.to : %.s Makefile
 	@echo [TESTASM] $<

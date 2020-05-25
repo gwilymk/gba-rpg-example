@@ -27,7 +27,7 @@ void LostGBA_TestRegister(LostGBA_TestMethod testMethod, const char *testName)
 
 void LostGBA_TestAssertFailed(const char *testName, const char *fileName, int lineNumber, const char *message)
 {
-    LostGBA_PrintLn("%s failed with message %s", testName, message);
+    LostGBA_PrintLn("%s:%d, %s failed with message %s", fileName, lineNumber, testName, message);
 
     while (1)
     {

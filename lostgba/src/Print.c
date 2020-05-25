@@ -2,6 +2,7 @@
 
 #include <lostgba/Print.h>
 #include <lostgba/GbaTypes.h>
+#include <lostgba/SystemCalls.h>
 
 #include <stdarg.h>
 
@@ -61,6 +62,47 @@ static void agbPuts(const char *s)
     }
 }
 
+static void agbPutInt(s32 n)
+{
+    char buf[16] = {0};
+    int i = 0;
+    bool isNegative = n < 0;
+    n = n < 0 ? -n : n;
+
+    if (n < 10)
+    {
+        buf[i] = '0' + n;
+        agbPuts(buf);
+        return;
+    }
+
+    while (n != 0)
+    {
+        s32 rem;
+        SystemCall_Divide(n, 10, &n, &rem);
+        buf[i++] = rem + '0';
+    }
+
+    if (isNegative)
+    {
+        buf[i++] = '-';
+    }
+
+    int j = 0;
+    i--;
+    while (i > j)
+    {
+        char temp = buf[i];
+        buf[i] = buf[j];
+        buf[j] = temp;
+
+        i--;
+        j++;
+    }
+
+    agbPuts(buf);
+}
+
 void LostGBA_PrintLn(const char *fmt, ...)
 {
     va_list args;
@@ -77,7 +119,6 @@ void LostGBA_PrintLn(const char *fmt, ...)
             {
             case '%':
                 agbPutChar('%');
-                fmt++;
                 break;
             case 's':
             {
@@ -85,7 +126,21 @@ void LostGBA_PrintLn(const char *fmt, ...)
                 agbPuts(arg);
                 break;
             }
+            case 'c':
+            {
+                char arg = (char)va_arg(args, int);
+                agbPutChar(arg);
+                break;
             }
+            case 'd':
+            {
+                int arg = va_arg(args, int);
+                agbPutInt(arg);
+                break;
+            }
+            }
+
+            fmt++;
         }
         else
         {
