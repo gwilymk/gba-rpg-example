@@ -73,6 +73,13 @@ LostGBA_VMemCpy32_Fast:
 LostGBA_VMemCpy16:
     push {r4, lr} @ save return value on the stack
 
+    @ first check that the source and target are aligned. Logical or and check that the lower
+    @ 2 bits are 0
+    orr r4, r0, r1 @ r4 = r0 | r1
+    ands r4, r4, #3 @ r4 = r4 & 0b11
+    bne .unalignedSourceOrTarget
+
+.alignedSourceAndTarget:
     @ we need to work out how many words we can copy using the fast version
     and r4, r2, #2 @ r4 = r2 & 0b10 the number of extra bytes we need to copy at the end (same as %4 but always even)
     lsr r2, r2, #2 @ r2 = r2 >> 2 (r2 = r2 / 4) so r2 is the number of words we need to copy
@@ -82,8 +89,17 @@ LostGBA_VMemCpy16:
 
     @ now we only need to do the last half word if necessary
     cmp r4, #0 @ compare r4 with 0
-    ldrneh r3, [r1, #0] @ r3 = r1 (half word), only if r4 is not 0
-    strneh r3, [r0, #0] @ r0 = r3 (half word), only if r4 is not 0
+    ldrneh r3, [r1] @ r3 = r1 (half word), only if r4 is not 0
+    strneh r3, [r0] @ r0 = r3 (half word), only if r4 is not 0
     
-    pop {r4, lr}
-    bx lr
+    pop {r4, lr} @ restore scratch register and return pointer
+    bx lr @ return
+
+.unalignedSourceOrTarget:
+    @ for now, we assume that either both the source and target are unaligned or neither are
+    ldrh r3, [r1] @ copy the address at r1 to r0
+    strh r3, [r0]
+    add r0, r0, #2 @ we've already copied the first half-word now
+    add r1, r1, #2
+    sub r2, r2, #2 @ and so decrement the length
+    b .alignedSourceAndTarget @ source and target are now aligned
