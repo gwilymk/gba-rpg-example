@@ -43,7 +43,13 @@ SPECS   := -specs=gba.specs
 
 INCLUDES := -I. -Ilostgba/include -Iinclude
 OPTFLAGS := -O2 -flto
-CFLAGS  := $(ARCH) -g $(CFLAGS_COMMON) $(INCLUDES)
+
+MGBA_DEFINES =
+ifdef MGBA
+  MGBA_DEFINES = -DLOSTGBA_MGBA_TARGET
+endif
+
+CFLAGS  := $(ARCH) -g $(CFLAGS_COMMON) $(INCLUDES) $(MGBA_DEFINES)
 
 PNGTOGBA := lostgba/tools/pngtogba/pngtogba
 
@@ -106,7 +112,7 @@ dump-test: $(TARGET)-test.dump
 
 %.to : %.c Makefile
 	@echo [TESTCC] $<
-	@$(CC) -c $< $(CFLAGS) -o $@ -MMD -MP -MF $*.td -DLOSTGBA_TEST
+	$(CC) -c $< $(CFLAGS) -o $@ -MMD -MP -MF $*.td -DLOSTGBA_TEST
 
 %.to : %.s Makefile
 	@echo [TESTASM] $<

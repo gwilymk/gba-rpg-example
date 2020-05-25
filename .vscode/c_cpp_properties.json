@@ -3,7 +3,8 @@
         {
             "name": "Linux",
             "defines": [
-                "LOSTGBA_TEST"
+                "LOSTGBA_TEST",
+                "LOSTGBA_MGBA_TARGET"
             ],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
