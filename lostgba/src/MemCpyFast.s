@@ -53,7 +53,7 @@ LostGBA_VMemCpy32_Fast:
 @ void LostGBA_VMemCpy16(volatile void *target, const void *src, int length)
 @
 @ Based very heavily on the implementation of memcpy32 from libtonc
-@ Note again that length must be > 0
+@ Note that length must be > 0
 @
 @ Arguments:
 @ r0, r1 = target, src
