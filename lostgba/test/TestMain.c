@@ -2,6 +2,7 @@
 
 #include <lostgba/Interrupt.h>
 #include <lostgba/SystemCalls.h>
+#include <lostgba/Print.h>
 
 #include <string.h>
 
@@ -24,59 +25,13 @@ void LostGBA_TestRegister(LostGBA_TestMethod testMethod, const char *testName)
     NumRegisteredTests++;
 }
 
-struct AgbPrintContext
-{
-    u16 request;
-    u16 bank;
-    u16 get;
-    u16 put;
-};
-
-static volatile u16 *AgbPrintBuffer = (volatile u16 *)0x09fd0000;
-static volatile struct AgbPrintContext *AgbPrintContext = (volatile struct AgbPrintContext *)0x09fe20f8;
-static volatile u16 *AgbPrintProtect = (volatile u16 *)0x09fe2ffe;
-
-static void agbPrintInit(void)
-{
-    *AgbPrintProtect = 0x20;
-    AgbPrintContext->request = 0;
-    AgbPrintContext->get = 0;
-    AgbPrintContext->put = 0;
-    AgbPrintContext->bank = 0xfd;
-    *AgbPrintProtect = 0;
-}
-
-static void agbPutChar(char c)
-{
-    u16 data = AgbPrintBuffer[AgbPrintContext->put / 2];
-
-    *AgbPrintProtect = 0x20;
-    data = (AgbPrintContext->put % 2) ? (c << 8) | (data & 0xff) : (data & 0xff00) | c;
-    AgbPrintBuffer[AgbPrintContext->put / 2] = data;
-    AgbPrintContext->put++;
-    *AgbPrintProtect = 0;
-}
-
-static void agbPrint(const char *text)
-{
-    agbPrintInit();
-    while (*text)
-    {
-        agbPutChar(*text);
-        text++;
-    }
-
-    asm volatile("swi 0xfa");
-}
-
 void LostGBA_TestAssertFailed(const char *testName, const char *fileName, int lineNumber, const char *message)
 {
-    agbPrint(testName);
-    agbPrint(" failed with message ");
-    agbPrint(message);
+    LostGBA_PrintLn("%s failed with message %s", testName, message);
 
     while (1)
     {
+        SystemCall_WaitForVBlank();
     }
 }
 
@@ -91,7 +46,7 @@ int main(void)
         RegisteredTests[i].testMethod(RegisteredTests[i].testName);
     }
 
-    agbPrint("All tests passed");
+    LostGBA_PrintLn("All tests passed!");
     while (1)
     {
         SystemCall_WaitForVBlank();
