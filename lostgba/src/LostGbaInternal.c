@@ -25,13 +25,6 @@ void LostGBA_VMemCpy32(volatile void *target, const void *src, int length)
         return; // nothing to do
     }
 
-    if (length % 4 == 0)
-    {
-        // whole number of words long. So we can do lots at a time
-        LostGBA_VMemCpy32_Fast(target, src, length / 4);
-        return;
-    }
-
     LostGBA_VMemCpy16(target, src, length);
 }
 
@@ -89,6 +82,11 @@ LostGBA_Test("MemCpy copies all requested memory if size is 0.5 words")
 LostGBA_Test("MemCpy copies all requested memory if both source and target are mis-aligned")
 {
     MemoryTest(2, 2, 126);
+}
+
+LostGBA_Test("MemCpy copies all requested memory if both source and target are mis-aligned including last half word")
+{
+    MemoryTest(2, 2, 128);
 }
 
 #endif
