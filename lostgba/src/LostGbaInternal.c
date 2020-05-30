@@ -12,15 +12,7 @@ void LostGBA_SetVBits16(vu16 *target, u16 value, u16 length, u16 shift)
     (*target) = (*target & ~(mask << shift)) | ((value & mask) << shift);
 }
 
-ARM_TARGET
-IWRAM_CODE void LostGBA_VMemCpy32_Fast(volatile void *target, const void *src, int words);
-
-void LostGBA_VMemCpy(volatile void *target, const void *src, int length);
-
-void LostGBA_VMemCpy32(volatile void *target, const void *src, int length)
-{
-    LostGBA_VMemCpy(target, src, length);
-}
+void LostGBA_VMemCpy(volatile void *target, const void *src, int length); // defined in MemCpyFast.s
 
 #ifdef LOSTGBA_TEST
 
@@ -38,7 +30,7 @@ void LostGBA_VMemCpy32(volatile void *target, const void *src, int length)
         {                                                                                               \
             src[i] = i;                                                                                 \
         }                                                                                               \
-        LostGBA_VMemCpy32(target + startTarget_, src + startSrc_, toCopy_);                             \
+        LostGBA_VMemCpy(target + startTarget_, src + startSrc_, toCopy_);                               \
         for (int i = startTarget_; i < startTarget_ + toCopy_; i++)                                     \
         {                                                                                               \
             LostGBA_Assert(target[i] == startSrc_ + i - startTarget_, "Correct bytes were not copied"); \

@@ -7,7 +7,7 @@
 
 void TileMap_CopyToSpritePalette(const u16 paletteData[TileMap_PaletteLength])
 {
-    LostGBA_VMemCpy32(SPRITE_PALETTE_MEMORY_LOCATION, paletteData, TileMap_PaletteLength * sizeof(u16));
+    LostGBA_VMemCpy(SPRITE_PALETTE_MEMORY_LOCATION, paletteData, TileMap_PaletteLength * sizeof(u16));
 }
 
 #define SPRITE_CHARBLOCK_BASE ((vu16 *)0x06010000)
@@ -15,19 +15,19 @@ void TileMap_CopyToSpritePalette(const u16 paletteData[TileMap_PaletteLength])
 
 void LOSTGBA_UNSAFE(TileMap_CopyToSpriteTiles)(int tileNumber, const u32 *tileData, int length)
 {
-    LostGBA_VMemCpy32(SPRITE_CHARBLOCK_BASE + tileNumber * CHARBLOCK_SIZE, tileData, length);
+    LostGBA_VMemCpy(SPRITE_CHARBLOCK_BASE + tileNumber * CHARBLOCK_SIZE, tileData, length);
 }
 
 #define BG_PALETTE_MEMORY_LOCATION ((vu16 *)0x05000000)
 
 void TileMap_CopyToBackgroundPalette(const u16 paletteData[TileMap_PaletteLength])
 {
-    LostGBA_VMemCpy32(BG_PALETTE_MEMORY_LOCATION, paletteData, TileMap_PaletteLength * sizeof(u16));
+    LostGBA_VMemCpy(BG_PALETTE_MEMORY_LOCATION, paletteData, TileMap_PaletteLength * sizeof(u16));
 }
 
 #define TILE_MEMORY_LOCATION ((vu16 *)0x06000000)
 
 void LOSTGBA_UNSAFE(TileMap_CopyToBackgroundTiles)(int tileNumber, const u32 *tileData, int length)
 {
-    LostGBA_VMemCpy32(TILE_MEMORY_LOCATION + tileNumber * CHARBLOCK_SIZE, tileData, length);
+    LostGBA_VMemCpy(TILE_MEMORY_LOCATION + tileNumber * CHARBLOCK_SIZE, tileData, length);
 }

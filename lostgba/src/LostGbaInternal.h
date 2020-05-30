@@ -30,9 +30,9 @@ void LostGBA_SetBits16(u16 *target, u16 value, u16 length, u16 shift);
 void LostGBA_SetVBits16(vu16 *target, u16 value, u16 length, u16 shift);
 
 /**
- * @brief A version of memcpy that does 32-bit copies and handles a volatile target
+ * @brief A version of memcpy that does 32-bit copies if possible and handles a volatile target
  */
-void LostGBA_VMemCpy32(volatile void *target, const void *src, int length);
+void LostGBA_VMemCpy(volatile void *target, const void *src, int length);
 
 /**
  * @brief Returns a number with the first n bits set to 1
