@@ -65,14 +65,9 @@ void ObjectAttribute_SetPaletteBank(struct ObjectAttribute *attr, u16 paletteBan
     LostGBA_SetBits16(&attr->attr2, paletteBank, 4, 12);
 }
 
-#define OBJECT_ATTRIBUTE_MEMORY_LOCATION ((volatile struct ObjectAttribute *)(volatile void *)0x07000000)
+static volatile struct ObjectAttribute *objectAttributeSystemMemoryLocation = (volatile struct ObjectAttribute *)0x07000000;
 
 void ObjectAttributeBuffer_CopyBufferToMemory(void)
 {
-    volatile struct ObjectAttribute *objectAttributeSystemMemoryLocation = OBJECT_ATTRIBUTE_MEMORY_LOCATION;
-
-    for (int i = 0; i < ObjectAttributeBuffer_Length; i++)
-    {
-        objectAttributeSystemMemoryLocation[i] = objectAttributeBuffer[i];
-    }
+    LostGBA_VMemCpy(objectAttributeSystemMemoryLocation, objectAttributeBuffer, sizeof(struct ObjectAttribute) * ObjectAttributeBuffer_Length);
 }
