@@ -1,7 +1,7 @@
 #include <lostgba/Background.h>
 #include "LostGbaInternal.h"
 
-vu16 *Background_ControlRegisterBaseAddr = (vu16 *)0x04000008;
+static vu16 *Background_ControlRegisterBaseAddr = (vu16 *)0x04000008;
 
 static void Background_setBits(enum BackgroundNumber backgroundNumber, u16 value, u16 length, u16 shift)
 {
@@ -71,8 +71,8 @@ void LOSTGBA_UNSAFE(Background_SetTile)(int screenBaseBlock, enum BackgroundSize
     *(VRAM_BASE + (SCREEN_BLOCK_LENGTH * (screenBaseBlock + screenBlockOffset)) + screenBlockStep) = screenEntry;
 }
 
-vu16 *Background_HorizontalOffsetBaseAddr = (vu16 *)0x04000010;
-vu16 *Background_VerticalOffsetBaseAddr = (vu16 *)0x4000012;
+static vu16 *Background_HorizontalOffsetBaseAddr = (vu16 *)0x04000010;
+static vu16 *Background_VerticalOffsetBaseAddr = (vu16 *)0x4000012;
 
 void Background_SetHorizontalOffset(enum BackgroundNumber backgroundNumber, int hOffset)
 {
