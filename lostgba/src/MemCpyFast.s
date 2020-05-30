@@ -59,7 +59,7 @@ LostGBA_EndArmFunc LostGBA_VMemCpy32_Fast
 @
 @ Uses r5 for scratch values
 @
-@ Will use the fast 32-bit version above internally but this handles non-word length (but not unaligned memory)
+@ Will use the fast 32-bit version above internally but this handles non-word length and half-word aligned data
 @ Both source and target must be word aligned, and length must be a multiple of 2 (half-word aligned)
 @
 @ TODO: Handle the case where bytes % 2 != 0
