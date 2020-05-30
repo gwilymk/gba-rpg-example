@@ -15,17 +15,11 @@ void LostGBA_SetVBits16(vu16 *target, u16 value, u16 length, u16 shift)
 ARM_TARGET
 IWRAM_CODE void LostGBA_VMemCpy32_Fast(volatile void *target, const void *src, int words);
 
-ARM_TARGET
-IWRAM_CODE void LostGBA_VMemCpy16(volatile void *target, const void *src, int length);
+void LostGBA_VMemCpy(volatile void *target, const void *src, int length);
 
 void LostGBA_VMemCpy32(volatile void *target, const void *src, int length)
 {
-    if (length == 0)
-    {
-        return; // nothing to do
-    }
-
-    LostGBA_VMemCpy16(target, src, length);
+    LostGBA_VMemCpy(target, src, length);
 }
 
 #ifdef LOSTGBA_TEST
