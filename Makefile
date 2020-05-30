@@ -16,6 +16,7 @@ TILEMAP_HEADERS := $(patsubst %.csv,%.h,$(TILEMAPS))
 CMAIN := src/main.c
 CFILES  := $(shell find src -type f -name '*.c' -not -name 'main.c') $(shell find lostgba/src -type f -name '*.c')
 ASMFILES := $(shell find src -type f -name '*.s') $(shell find lostgba/src -type f -name '*.s')
+ASMMACROFILES := $(shell find src -type f -name '*.i') $(shell find lostgba/src -type f -name '*.i')
 HFILES  := $(shell find -name '*.h')
 MAINOBJ := src/main.o
 OBJS    := $(patsubst %.c,%.o,$(CFILES)) $(patsubst %.s,%.o,$(ASMFILES)) $(IMAGE_OBJS) $(TILEMAP_OBJS)
@@ -106,17 +107,17 @@ dump-test: $(TARGET)-test.dump
 	@echo [CC] $<
 	@$(CC) -c $< $(CFLAGS) $(OPTFLAGS) -o $@ -MMD -MP
 
-%.o : %.s Makefile
+%.o : %.s Makefile $(ASMMACROFILES)
 	@echo [ASM] $<
-	@$(CC) -c $< $(CFLAGS) $(OPTFLAGS) -o $@
+	@$(CC) -c $< $(CFLAGS) $(OPTFLAGS) -I$(*D) -o $@ -MMD -MP
 
 %.to : %.c Makefile
 	@echo [TESTCC] $<
 	@$(CC) -c $< $(CFLAGS) -o $@ -MMD -MP -MF $*.td -DLOSTGBA_TEST
 
-%.to : %.s Makefile
+%.to : %.s Makefile $(ASMMACROFILES)
 	@echo [TESTASM] $<
-	@$(CC) -c $< $(CFLAGS) -o $@ -DLOSTGBA_TEST
+	@$(CC) -c $< $(CFLAGS) -I$(*D) -o $@ -MMD -MP -DLOSTGBA_TEST
 
 %.png.c: %.png.h %.png $(PNGTOGBA) Makefile
 	@echo [PNGTOGBA] $<

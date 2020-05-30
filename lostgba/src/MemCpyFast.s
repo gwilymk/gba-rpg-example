@@ -1,3 +1,5 @@
+.include "AsmMacros.i"
+
 @ void LostGBA_VMemCpy32_Fast(volatile void *target, const void *src, int words)
 @
 @ Based very heavily on the implementation of memcpy32 from libtonc
@@ -13,12 +15,7 @@
 @ r5 - r12 are used as scratch registers
 @
 @ preserves r4
-.section .iwram, "ax", %progbits @ "ax" = allocatable and executable, %progbits = contains data
-.arm
-.align 2
-.global LostGBA_VMemCpy32_Fast
-.type LostGBA_VMemCpy32_Fast STT_FUNC
-LostGBA_VMemCpy32_Fast:
+LostGBA_ArmFunc LostGBA_VMemCpy32_Fast
     lsrs r3, r2, #3 @ r3 = r2 >> 3 (r3 = r2 / 8). Set flag register on result (used below)
     and r2, r2, #7 @ r2 = r2 & 0b111 (r2 = r2 % 8)
     beq .loopmemcpy32_slow @ if result above is = 0, then jump straight to the slow version
@@ -48,9 +45,10 @@ LostGBA_VMemCpy32_Fast:
     bpl .loopmemcpy32_slow @ loop only if r2 > 0
 
     bx lr @ return
+LostGBA_EndArmFunc LostGBA_VMemCpy32_Fast
 
 
-@ void LostGBA_VMemCpy16(volatile void *target, const void *src, int length)
+@ void LostGBA_VMemCpy(volatile void *target, const void *src, int length)
 @
 @ Based very heavily on the implementation of memcpy32 from libtonc
 @ Note that length must be > 0
@@ -65,13 +63,7 @@ LostGBA_VMemCpy32_Fast:
 @ Both source and target must be word aligned, and length must be a multiple of 2 (half-word aligned)
 @
 @ TODO: Handle the case where bytes % 2 != 0
-.section .rom, "ax", %progbits @ "ax" = allocatable and executable, %progbits = contains data
-.thumb
-.code 16
-.align 2
-.global LostGBA_VMemCpy
-.type LostGBA_VMemCpy STT_FUNC
-LostGBA_VMemCpy:
+LostGBA_ThumbFunc LostGBA_VMemCpy
     push {r4, r5, lr} @ save return value on the stack
 
     @ First check if length = 0
@@ -139,3 +131,4 @@ LostGBA_VMemCpy:
     pop {r5}
     pop {r3} @ restore scratch register and return pointer
     bx r3 @ return
+LostGBA_EndThumbFunc LostGBA_VMemCpy
