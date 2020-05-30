@@ -65,7 +65,7 @@ LostGBA_VMemCpy32_Fast:
 @ Both source and target must be word aligned, and length must be a multiple of 2 (half-word aligned)
 @
 @ TODO: Handle the case where bytes % 2 != 0
-.section .iwram, "ax", %progbits @ "ax" = allocatable and executable, %progbits = contains data
+.section .rom, "ax", %progbits @ "ax" = allocatable and executable, %progbits = contains data
 .thumb
 .code 16
 .align 2
